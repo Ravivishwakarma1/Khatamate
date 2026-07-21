@@ -27,9 +27,10 @@ const jetbrainsMono = JetBrains_Mono({
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'KhataFlow — Digital Credit Ledger for Local Businesses',
-  description: 'Manage shop credit (Udhar), record payments (Jama), send WhatsApp reminders, and track business growth.',
+  title: 'KhataMate — Digital Credit Ledger for Local Businesses',
+  description: 'Manage shop credit (Udhar), record payments (Jama), send WhatsApp reminders, and track business growth with KhataMate.',
 };
+
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
