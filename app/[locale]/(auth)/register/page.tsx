@@ -45,13 +45,9 @@ export default function RegisterPage() {
       toast.success('Account created with Firebase!');
       router.push(`/${locale}/onboarding`);
     } catch (err: any) {
-      if (err?.message?.includes('demo-firebase-api-key') || err?.code?.includes('auth/')) {
-        toast.info('Demo register — proceeding to shop onboarding');
-        router.push(`/${locale}/onboarding`);
-        return;
-      }
       setErrorMsg(err?.message || 'Failed to create account.');
     } finally {
+
       setLoading(false);
     }
   };

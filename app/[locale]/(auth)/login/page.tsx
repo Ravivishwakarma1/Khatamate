@@ -39,14 +39,9 @@ export default function LoginPage() {
       router.push(`/${locale}/dashboard`);
       router.refresh();
     } catch (err: any) {
-      if (err?.message?.includes('demo-firebase-api-key') || err?.code === 'auth/invalid-credential') {
-        toast.info('Demo login activated');
-        router.push(`/${locale}/dashboard`);
-        return;
-      }
-
       setErrorMsg(err?.message || 'Invalid email or password.');
     } finally {
+
       setLoading(false);
     }
   };

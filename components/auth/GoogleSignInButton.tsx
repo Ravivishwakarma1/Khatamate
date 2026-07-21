@@ -20,13 +20,9 @@ export default function GoogleSignInButton() {
       toast.success('Signed in with Google via Firebase!');
       router.push(`/${locale}/dashboard`);
     } catch (err: any) {
-      if (err?.message?.includes('demo-firebase-api-key') || err?.code?.includes('auth/')) {
-        toast.info('Demo login with Google activated');
-        router.push(`/${locale}/dashboard`);
-        return;
-      }
       toast.error(err?.message || 'Failed to sign in with Google');
     } finally {
+
       setLoading(false);
     }
   };
