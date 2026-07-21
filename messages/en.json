@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "KhataFlow",
+    "appName": "KhataMate",
     "tagline": "Next-Gen Digital Credit Ledger",
     "loading": "Loading...",
     "save": "Save",
@@ -21,7 +21,7 @@
     "settings": "Settings"
   },
   "landing": {
-    "title": "Master Your Business Credit with KhataFlow",
+    "title": "Master Your Business Credit with KhataMate",
     "subtitle": "Track Udhar & Jama, send automated WhatsApp reminders, work 100% offline."
   },
   "dashboard": {
@@ -85,7 +85,7 @@
     "gstNumber": "GST Number (Optional)",
     "saveProfile": "Save Profile Changes",
     "appPinSecurity": "App PIN Security",
-    "pinDesc": "Require a 4-digit PIN every time KhataFlow opens to protect customer credit records.",
+    "pinDesc": "Require a 4-digit PIN every time KhataMate opens to protect customer credit records.",
     "enablePin": "Enable 4-Digit Security PIN",
     "changePin": "Change 4-Digit PIN",
     "testPin": "Test PIN Unlock Screen",
@@ -98,3 +98,4 @@
     "clearAllData": "Clear All Demo & Cached Data"
   }
 }
+

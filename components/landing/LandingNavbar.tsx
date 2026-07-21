@@ -19,12 +19,13 @@ export function LandingNavbar({ locale }: { locale: string }) {
 
   return (
     <header className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
-      <Link href={`/${locale}/landing`} className={styles.brand}>
+      <Link href={`/${locale}`} className={styles.brand}>
         <div className={styles.logoIcon}>
           <BookOpen size={22} />
         </div>
-        <span>Khata<span className="text-accent">Flow</span></span>
+        <span>Khata<span className="text-accent">Mate</span></span>
       </Link>
+
 
       <nav className={styles.navLinks}>
         <a href="#features" className={styles.navLink}>Features</a>

@@ -54,7 +54,7 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
           {type === 'privacy' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <p>
-                At <strong>KhataFlow</strong>, your privacy is our top priority. This Privacy Policy explains how your customer ledger data, transactions, and business information are protected.
+                At <strong>KhataMate</strong>, your privacy is our top priority. This Privacy Policy explains how your customer ledger data, transactions, and business information are protected.
               </p>
               <h4 style={{ color: 'var(--text)', fontSize: '0.9rem' }}>1. Local-First Data Control</h4>
               <p>
@@ -62,7 +62,7 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
               </p>
               <h4 style={{ color: 'var(--text)', fontSize: '0.9rem' }}>2. Offline Confidentiality</h4>
               <p>
-                KhataFlow never sells or shares customer personal details, phone numbers, or ledger balances with third-party advertisers or data brokers.
+                KhataMate never sells or shares customer personal details, phone numbers, or ledger balances with third-party advertisers or data brokers.
               </p>
               <h4 style={{ color: 'var(--text)', fontSize: '0.9rem' }}>3. Secure Cloud Backup</h4>
               <p>
@@ -74,7 +74,7 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
           {type === 'terms' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <p>
-                Welcome to <strong>KhataFlow</strong>. By using our web application or services, you agree to these Terms of Service.
+                Welcome to <strong>KhataMate</strong>. By using our web application or services, you agree to these Terms of Service.
               </p>
               <h4 style={{ color: 'var(--text)', fontSize: '0.9rem' }}>1. Accurate Record Keeping</h4>
               <p>
@@ -82,11 +82,11 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
               </p>
               <h4 style={{ color: 'var(--text)', fontSize: '0.9rem' }}>2. Fair Usage of Reminders</h4>
               <p>
-                WhatsApp payment reminders generated via KhataFlow must be used responsibly and strictly for genuine business payment collections.
+                WhatsApp payment reminders generated via KhataMate must be used responsibly and strictly for genuine business payment collections.
               </p>
               <h4 style={{ color: 'var(--text)', fontSize: '0.9rem' }}>3. Service Availability</h4>
               <p>
-                KhataFlow is provided with offline-first support so you can continue managing your shop even during internet outages.
+                KhataMate is provided with offline-first support so you can continue managing your shop even during internet outages.
               </p>
             </div>
           )}
@@ -94,8 +94,9 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
           {type === 'security' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <p>
-                KhataFlow enforces <strong>Bank-Grade Multi-Layer Security</strong> to safeguard your financial records.
+                KhataMate enforces <strong>Bank-Grade Multi-Layer Security</strong> to safeguard your financial records.
               </p>
+
               <h4 style={{ color: 'var(--text)', fontSize: '0.9rem' }}>🔒 App PIN & Biometric Lock</h4>
               <p>
                 Protect your ledger from unauthorized access using custom 4-digit PIN locks and screen timeout security.

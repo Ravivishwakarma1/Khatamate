@@ -59,9 +59,10 @@ export default function Sidebar() {
         </div>
         {!collapsed && (
           <div className={styles.brandTitle}>
-            <h1 className={styles.brandName}>KhataFlow</h1>
+            <h1 className={styles.brandName}>KhataMate</h1>
             <span className={styles.brandSub}>Digital Ledger</span>
           </div>
+
         )}
       </div>
 

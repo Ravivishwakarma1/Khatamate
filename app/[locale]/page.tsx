@@ -42,7 +42,7 @@ export default function LandingPage() {
         </div>
 
         <h1 className={styles.title}>
-          Master Your Business Credit with <span className={styles.gradientText}>KhataFlow</span>
+          Master Your Business Credit with <span className={styles.gradientText}>KhataMate</span>
         </h1>
 
         <p className={styles.subtitle}>
@@ -196,7 +196,7 @@ export default function LandingPage() {
       <section id="testimonials" className={styles.section}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Trusted by 10,000+ Shop Owners</h2>
-          <p className={styles.sectionSub}>See how KhataFlow helps local merchants collect payments faster.</p>
+          <p className={styles.sectionSub}>See how KhataMate helps local merchants collect payments faster.</p>
         </div>
 
 
@@ -206,7 +206,7 @@ export default function LandingPage() {
               {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="var(--gold)" />)}
             </div>
             <p style={{ fontSize: '0.9rem', color: 'var(--text)', fontStyle: 'italic', marginBottom: '16px', lineHeight: 1.5 }}>
-              "KhataFlow changed my Kirana shop completely. I collected ₹42,000 of old pending credit in just 2 weeks using the WhatsApp reminder link!"
+              "KhataMate changed my Kirana shop completely. I collected ₹42,000 of old pending credit in just 2 weeks using the WhatsApp reminder link!"
             </p>
             <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Suresh Patel</div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Laxmi Provision Store, Gujarat</div>
@@ -290,7 +290,7 @@ export default function LandingPage() {
       <footer className={styles.footer}>
         <div className={styles.footerCol}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: 'var(--text-xl)' }}>
-            <BookOpen size={24} className="text-primary" /> Khata<span className="text-accent">Flow</span>
+            <BookOpen size={24} className="text-primary" /> Khata<span className="text-accent">Mate</span>
           </div>
           <p style={{ color: 'var(--text-muted)', fontSize: 'var(--text-sm)', lineHeight: 1.5 }}>
             Empowering local businesses across India & beyond with smart digital credit tracking.
