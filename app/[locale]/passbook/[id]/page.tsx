@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Customer, Transaction, Shop } from '@/lib/db/schema';
-import { getLocalCustomerById, getLocalTransactionsByCustomer, getAllLocalShops } from '@/lib/db/idb';
+import { getLocalCustomerById, getLocalTransactionsByCustomer, getAllLocalShops, saveLocalTransaction } from '@/lib/db/idb';
 import { getCustomerFromFirestore, getTransactionsFromFirestore, getShopFromFirestore } from '@/lib/firebase/firestoreSync';
 import BillSlipModal from '@/components/modals/BillSlipModal';
 import { BookOpen, Calendar, Printer, Receipt, ShieldCheck, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
@@ -59,10 +59,50 @@ function PassbookContent() {
         setCustomer(custData || null);
 
         if (custData) {
-          // 4. Fetch transactions (Local IndexedDB first, then Cloud Firestore)
+          // 4. Fetch transactions (Local IndexedDB first, then Cloud Firestore, then QR Code URL params)
           let txList = await getLocalTransactionsByCustomer(customerId);
           if (!txList || txList.length === 0) {
             txList = await getTransactionsFromFirestore(customerId);
+          }
+
+          // Decode transactions encoded in the QR Code URL ('txs')
+          if ((!txList || txList.length === 0) && searchParams) {
+            const txsParam = searchParams.get('txs');
+            if (txsParam) {
+              try {
+                let jsonStr = '';
+                try {
+                  jsonStr = decodeURIComponent(escape(atob(txsParam)));
+                } catch (e) {
+                  jsonStr = decodeURIComponent(txsParam);
+                }
+                const parsed = JSON.parse(jsonStr);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  const decodedList: Transaction[] = parsed.map((item: any) => ({
+                    id: item.id || `tx_${Math.random().toString(36).substring(2, 7)}`,
+                    shop_id: custData.shop_id || 'shop_main',
+                    customer_id: custData.id,
+                    type: item.type || (item.t === 'CREDIT' ? 'CREDIT' : 'PAYMENT'),
+                    amount: Number(item.amount ?? item.a) || 0,
+                    balance_before: Number(item.balance_before ?? item.bb) || 0,
+                    balance_after: Number(item.balance_after ?? item.ba ?? item.b) || 0,
+                    note: item.note ?? item.n ?? '',
+                    transaction_at: item.transaction_at ?? item.d ?? new Date().toISOString(),
+                    created_at: item.transaction_at ?? item.d ?? new Date().toISOString(),
+                    items: item.items || [],
+                    is_disputed: Boolean(item.is_disputed),
+                  }));
+                  txList = decodedList;
+
+                  // Save to local device store for future offline access
+                  for (const t of decodedList) {
+                    saveLocalTransaction(t).catch(() => {});
+                  }
+                }
+              } catch (err) {
+                console.warn('Passbook URL transactions decode notice:', err);
+              }
+            }
           }
 
           if (!txList || txList.length === 0) {

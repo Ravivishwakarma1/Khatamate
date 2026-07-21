@@ -1,19 +1,21 @@
 'use client';
 
 import React from 'react';
-import { Customer } from '@/lib/db/schema';
+import { Customer, Transaction } from '@/lib/db/schema';
 import { QRCodeSVG } from 'qrcode.react';
 import { X, Printer, QrCode, BookOpen } from 'lucide-react';
 import styles from './modal.module.css';
 
 interface CustomerQrModalProps {
   customer: Customer;
+  transactions?: Transaction[];
   shopName?: string;
   onClose: () => void;
 }
 
 export default function CustomerQrModal({
   customer,
+  transactions = [],
   shopName = 'KhataMate Digital Ledger',
   onClose,
 }: CustomerQrModalProps) {
@@ -25,6 +27,27 @@ export default function CustomerQrModal({
   if (customer.phone) queryParams.set('phone', customer.phone);
   if (customer.room_id) queryParams.set('room', customer.room_id);
   if (shopName) queryParams.set('shop', shopName);
+
+  if (transactions && transactions.length > 0) {
+    try {
+      const compactTxs = transactions.slice(0, 30).map((t) => ({
+        id: t.id,
+        type: t.type,
+        amount: t.amount,
+        note: t.note || '',
+        transaction_at: t.transaction_at,
+        balance_after: t.balance_after,
+        balance_before: t.balance_before,
+        items: t.items || [],
+        is_disputed: t.is_disputed || false,
+      }));
+      const jsonStr = JSON.stringify(compactTxs);
+      const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+      queryParams.set('txs', encoded);
+    } catch (e) {
+      console.warn('Failed to encode transactions into QR:', e);
+    }
+  }
 
   const qrValue = `${origin}/en/passbook/${customer.id}?${queryParams.toString()}`;
 

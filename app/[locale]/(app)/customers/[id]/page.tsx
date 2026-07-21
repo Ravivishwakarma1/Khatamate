@@ -549,6 +549,7 @@ export default function CustomerProfilePage() {
       {showQrModal && (
         <CustomerQrModal
           customer={customer}
+          transactions={transactions}
           onClose={() => setShowQrModal(false)}
         />
       )}
