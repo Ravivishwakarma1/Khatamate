@@ -65,6 +65,32 @@ export default function CustomerProfilePage() {
   const [showQrModal, setShowQrModal] = useState(false);
   const [disputeTx, setDisputeTx] = useState<Transaction | null>(null);
   const [selectedSlipTx, setSelectedSlipTx] = useState<Transaction | null>(null);
+  const [selectedMonthFilter, setSelectedMonthFilter] = useState<string>('ALL');
+
+  // Available unique months
+  const availableMonths = useMemo(() => {
+    const set = new Set<string>();
+    transactions.forEach((t) => {
+      set.add(format(new Date(t.transaction_at), 'MMMM yyyy'));
+    });
+    return Array.from(set);
+  }, [transactions]);
+
+  // Filtered & grouped transactions by month
+  const groupedTransactions = useMemo(() => {
+    const filtered = selectedMonthFilter === 'ALL'
+      ? transactions
+      : transactions.filter((t) => format(new Date(t.transaction_at), 'MMMM yyyy') === selectedMonthFilter);
+
+    const map = new Map<string, Transaction[]>();
+    filtered.forEach((t) => {
+      const mKey = format(new Date(t.transaction_at), 'MMMM yyyy');
+      if (!map.has(mKey)) map.set(mKey, []);
+      map.get(mKey)!.push(t);
+    });
+    return map;
+  }, [transactions, selectedMonthFilter]);
+
 
   useEffect(() => {
     async function loadProfile() {
@@ -268,15 +294,59 @@ export default function CustomerProfilePage() {
 
       {/* Transaction Timeline */}
       <div className={`glass-card ${styles.timelineCard}`}>
-        <h3 className={styles.timelineTitle}>Transaction Ledger Timeline</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <h3 className={styles.timelineTitle} style={{ margin: 0 }}>Transaction Ledger Timeline</h3>
+          {availableMonths.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 600 }}>Filter Month:</span>
+              <select
+                value={selectedMonthFilter}
+                onChange={(e) => setSelectedMonthFilter(e.target.value)}
+                style={{
+                  background: 'var(--bg-input)',
+                  color: 'var(--text)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '6px 12px',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 700,
+                  outline: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value="ALL">📅 All Months ({availableMonths.length})</option>
+                {availableMonths.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
 
-        {transactions.length === 0 ? (
+        {groupedTransactions.size === 0 ? (
           <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            No recorded transactions yet for this customer.
+            No recorded transactions found for the selected month filter.
           </div>
         ) : (
           <div className={styles.txList}>
-            {transactions.map((tx) => {
+            {Array.from(groupedTransactions.entries()).map(([monthName, monthTxs]) => (
+              <div key={monthName} style={{ marginBottom: '16px' }}>
+                <div
+                  style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 800,
+                    color: 'var(--accent)',
+                    background: 'rgba(108, 58, 232, 0.15)',
+                    padding: '4px 10px',
+                    borderRadius: 'var(--radius-sm)',
+                    marginBottom: '10px',
+                    display: 'inline-block',
+                  }}
+                >
+                  📅 {monthName}
+                </div>
+                {monthTxs.map((tx) => {
+
               const isExpanded = expandedTxId === tx.id;
               const isCredit = tx.type === 'CREDIT';
               const isWriteOff = tx.type === 'WRITEOFF';
@@ -372,9 +442,12 @@ export default function CustomerProfilePage() {
                 </div>
               );
             })}
+              </div>
+            ))}
           </div>
         )}
       </div>
+
 
       {/* Active Modals */}
       {showAddCredit && (

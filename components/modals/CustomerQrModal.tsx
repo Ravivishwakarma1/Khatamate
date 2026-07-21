@@ -14,14 +14,16 @@ interface CustomerQrModalProps {
 
 export default function CustomerQrModal({
   customer,
-  shopName = 'KhataFlow Digital Ledger',
+  shopName = 'KhataMate Digital Ledger',
   onClose,
 }: CustomerQrModalProps) {
-  const qrValue = `khataflow://customer/${customer.id}`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://khatamate.vercel.app';
+  const qrValue = `${origin}/en/passbook/${customer.id}`;
 
   const handlePrint = () => {
     window.print();
   };
+
 
   return (
     <div className={styles.overlay} onClick={onClose}>
