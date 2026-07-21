@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { Customer, Transaction, Shop } from '@/lib/db/schema';
 import { getLocalCustomerById, getLocalTransactionsByCustomer, getAllLocalShops } from '@/lib/db/idb';
+import { getCustomerFromFirestore, getTransactionsFromFirestore, getShopFromFirestore } from '@/lib/firebase/firestoreSync';
 import BillSlipModal from '@/components/modals/BillSlipModal';
 import { BookOpen, Calendar, Printer, Receipt, ShieldCheck, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import styles from '../passbook.module.css';
@@ -25,28 +26,53 @@ export default function PublicCustomerPassbookPage() {
         setLoading(true);
         if (!customerId) return;
 
-        const custData = await getLocalCustomerById(customerId);
+        // 1. Try local IndexedDB first
+        let custData: Customer | null | undefined = await getLocalCustomerById(customerId);
+
+        // 2. If not found locally (e.g. customer scanned QR on their phone), fetch from Cloud Firestore
+        if (!custData) {
+          custData = await getCustomerFromFirestore(customerId);
+        }
+
         setCustomer(custData || null);
 
-        const txList = await getLocalTransactionsByCustomer(customerId);
-        setTransactions(txList.sort((a: Transaction, b: Transaction) => new Date(b.transaction_at).getTime() - new Date(a.transaction_at).getTime()));
+        if (custData) {
+          // 3. Fetch transactions (Local IndexedDB first, then Cloud Firestore)
+          let txList = await getLocalTransactionsByCustomer(customerId);
+          if (!txList || txList.length === 0) {
+            txList = await getTransactionsFromFirestore(customerId);
+          }
 
-        const shopsList = await getAllLocalShops();
-        setShop(shopsList[0] || {
-          id: 'demo-shop',
-          owner_id: 'owner-1',
-          name: 'KhataMate Digital Ledger Store',
-          currency: 'INR',
-          plan: 'PRO',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
+          setTransactions(
+            txList.sort((a: Transaction, b: Transaction) => new Date(b.transaction_at).getTime() - new Date(a.transaction_at).getTime())
+          );
+
+          // 4. Fetch Shop info
+          const shopsList = await getAllLocalShops();
+          let shopData: Shop | null | undefined = shopsList[0];
+          if (!shopData && custData.shop_id) {
+            shopData = await getShopFromFirestore(custData.shop_id);
+          }
+
+          setShop(
+            shopData || {
+              id: custData.shop_id || 'demo-shop',
+              owner_id: 'owner-1',
+              name: 'KhataMate Digital Ledger Store',
+              currency: 'INR',
+              plan: 'PRO',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }
+          );
+        }
       } catch (err) {
         console.error('Passbook loading error:', err);
       } finally {
         setLoading(false);
       }
     }
+
 
 
     loadPassbookData();
@@ -113,15 +139,22 @@ export default function PublicCustomerPassbookPage() {
   if (!customer) {
     return (
       <div className={styles.pageWrapper}>
-        <div className={styles.container} style={{ textAlign: 'center', paddingTop: '80px' }}>
-          <h2>Customer Ledger Not Found</h2>
-          <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>
-            The requested customer account ledger could not be located.
+        <div className={styles.container} style={{ textAlign: 'center', paddingTop: '80px', maxWidth: '480px' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(108, 58, 232, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--accent)' }}>
+            <BookOpen size={32} />
+          </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Customer Ledger Not Synced</h2>
+          <p style={{ color: 'var(--text-muted)', marginTop: '12px', fontSize: '0.9rem', lineHeight: 1.6 }}>
+            This customer passbook has not been synced to Cloud Firestore yet.
           </p>
+          <div style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', padding: '16px', borderRadius: '12px', marginTop: '20px', textAlign: 'left', fontSize: '0.82rem', color: 'var(--text-dim)', lineHeight: 1.5 }}>
+            💡 <strong>For Shopkeeper:</strong> Ensure your Vercel project has Firebase Environment Variables added, and open KhataMate while online to automatically sync customer passbooks to the cloud so customers can view them on their phones.
+          </div>
         </div>
       </div>
     );
   }
+
 
   const monthEntries = Array.from(groupedByMonth.entries());
 

@@ -39,6 +39,50 @@ export async function saveTransactionToFirestore(transaction: Transaction): Prom
   }
 }
 
+// Fetch Customer from Firestore
+export async function getCustomerFromFirestore(customerId: string): Promise<Customer | null> {
+  try {
+    const ref = doc(db, 'customers', customerId);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      return snap.data() as Customer;
+    }
+  } catch (err) {
+    console.warn('Firestore getCustomer note:', err);
+  }
+  return null;
+}
+
+// Fetch Transactions for a Customer from Firestore
+export async function getTransactionsFromFirestore(customerId: string): Promise<Transaction[]> {
+  try {
+    const q = query(collection(db, 'transactions'), where('customer_id', '==', customerId));
+    const snap = await getDocs(q);
+    const list: Transaction[] = [];
+    snap.forEach((docSnap) => {
+      list.push(docSnap.data() as Transaction);
+    });
+    return list;
+  } catch (err) {
+    console.warn('Firestore getTransactions note:', err);
+  }
+  return [];
+}
+
+// Fetch Shop from Firestore
+export async function getShopFromFirestore(shopId: string): Promise<Shop | null> {
+  try {
+    const ref = doc(db, 'shops', shopId);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      return snap.data() as Shop;
+    }
+  } catch (err) {
+    console.warn('Firestore getShop note:', err);
+  }
+  return null;
+}
+
 // Sync Local IndexedDB Data to Cloud Firestore
 export async function syncIndexedDBToFirestore(): Promise<boolean> {
   if (typeof window === 'undefined') return false;
@@ -63,3 +107,4 @@ export async function syncIndexedDBToFirestore(): Promise<boolean> {
     return false;
   }
 }
+
