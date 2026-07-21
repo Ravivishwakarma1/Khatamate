@@ -65,9 +65,46 @@ function PassbookContent() {
             txList = await getTransactionsFromFirestore(customerId);
           }
 
+          if (!txList || txList.length === 0) {
+
+            const nowStr = custData.updated_at || custData.created_at || new Date().toISOString();
+            if (custData.outstanding_due > 0) {
+              txList = [
+                {
+                  id: `tx_opening_${custData.id}`,
+                  shop_id: custData.shop_id || 'shop_main',
+                  customer_id: custData.id,
+                  type: 'CREDIT',
+                  amount: custData.outstanding_due,
+                  balance_before: 0,
+                  balance_after: custData.outstanding_due,
+                  note: 'Opening Outstanding Ledger Entry (Udhar)',
+                  transaction_at: nowStr,
+                  created_at: nowStr,
+                },
+              ];
+            } else if (custData.advance_balance > 0) {
+              txList = [
+                {
+                  id: `tx_opening_${custData.id}`,
+                  shop_id: custData.shop_id || 'shop_main',
+                  customer_id: custData.id,
+                  type: 'PAYMENT',
+                  amount: custData.advance_balance,
+                  balance_before: 0,
+                  balance_after: custData.advance_balance,
+                  note: 'Advance Deposit Balance (Jama)',
+                  transaction_at: nowStr,
+                  created_at: nowStr,
+                },
+              ];
+            }
+          }
+
           setTransactions(
             txList.sort((a: Transaction, b: Transaction) => new Date(b.transaction_at).getTime() - new Date(a.transaction_at).getTime())
           );
+
 
           // 5. Fetch Shop info
           const shopsList = await getAllLocalShops();
