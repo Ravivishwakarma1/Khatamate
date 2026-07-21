@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { signInWithEmail } from '@/lib/firebase/auth';
+import { formatAuthError } from '@/lib/firebase/errorHelper';
+
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 
 import { useToast } from '@/components/ui/Toast';
@@ -35,11 +37,11 @@ export default function LoginPage() {
     try {
       setLoading(true);
       await signInWithEmail(email, password);
-      toast.success('Signed in successfully with Firebase!');
+      toast.success('Signed in successfully!');
       router.push(`/${locale}/dashboard`);
       router.refresh();
     } catch (err: any) {
-      setErrorMsg(err?.message || 'Invalid email or password.');
+      setErrorMsg(formatAuthError(err));
     } finally {
 
       setLoading(false);

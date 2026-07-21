@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { signUpWithEmail } from '@/lib/firebase/auth';
+import { formatAuthError } from '@/lib/firebase/errorHelper';
+
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 
 import { useToast } from '@/components/ui/Toast';
@@ -45,8 +47,9 @@ export default function RegisterPage() {
       toast.success('Account created with Firebase!');
       router.push(`/${locale}/onboarding`);
     } catch (err: any) {
-      setErrorMsg(err?.message || 'Failed to create account.');
+      setErrorMsg(formatAuthError(err));
     } finally {
+
 
       setLoading(false);
     }

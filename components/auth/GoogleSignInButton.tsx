@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 
 import { signInWithGoogle } from '@/lib/firebase/auth';
+import { formatAuthError } from '@/lib/firebase/errorHelper';
 import { useToast } from '@/components/ui/Toast';
 import { useRouter, useParams } from 'next/navigation';
 
@@ -20,12 +21,12 @@ export default function GoogleSignInButton() {
       toast.success('Signed in with Google via Firebase!');
       router.push(`/${locale}/dashboard`);
     } catch (err: any) {
-      toast.error(err?.message || 'Failed to sign in with Google');
+      toast.error(formatAuthError(err));
     } finally {
-
       setLoading(false);
     }
   };
+
 
 
   return (
