@@ -30,7 +30,7 @@ export function exportTransactionsCSV(transactions: Transaction[], customers: Cu
 
   const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
   const dateStr = format(new Date(), 'yyyy-MM-dd');
-  triggerDownload(csvContent, `khataflow_transactions_${dateStr}.csv`, 'text/csv;charset=utf-8;');
+  triggerDownload(csvContent, `khatamate_transactions_${dateStr}.csv`, 'text/csv;charset=utf-8;');
 }
 
 export function exportCustomerListCSV(customers: Customer[]) {
@@ -49,20 +49,21 @@ export function exportCustomerListCSV(customers: Customer[]) {
 
   const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
   const dateStr = format(new Date(), 'yyyy-MM-dd');
-  triggerDownload(csvContent, `khataflow_customers_${dateStr}.csv`, 'text/csv;charset=utf-8;');
+  triggerDownload(csvContent, `khatamate_customers_${dateStr}.csv`, 'text/csv;charset=utf-8;');
 }
 
 export function exportFullBackup(customers: Customer[], transactions: Transaction[]) {
   const backupData = {
-    app: 'KhataFlow',
+    app: 'KhataMate',
     version: '2.0',
     export_date: new Date().toISOString(),
-    shop: JSON.parse(localStorage.getItem('khataflow_shop') || '{}'),
+    shop: JSON.parse(localStorage.getItem('khatamate_shop') || '{}'),
     customers,
     transactions,
   };
 
   const jsonString = JSON.stringify(backupData, null, 2);
   const dateStr = format(new Date(), 'yyyy-MM-dd_HHmm');
-  triggerDownload(jsonString, `khataflow_backup_${dateStr}.json`, 'application/json');
+  triggerDownload(jsonString, `khatamate_backup_${dateStr}.json`, 'application/json');
 }
+

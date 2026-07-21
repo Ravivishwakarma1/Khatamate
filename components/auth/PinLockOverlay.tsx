@@ -55,8 +55,9 @@ export default function PinLockOverlay({ onUnlock }: PinLockOverlayProps) {
         </div>
 
         <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: '4px' }}>
-          {unlocked ? 'App Unlocked' : 'KhataFlow Security PIN'}
+          {unlocked ? 'App Unlocked' : 'KhataMate Security PIN'}
         </h2>
+
         <p style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)', marginBottom: '24px' }}>
           {unlocked ? 'Accessing your shop ledger...' : 'Enter your 4-digit PIN to access ledger'}
         </p>
