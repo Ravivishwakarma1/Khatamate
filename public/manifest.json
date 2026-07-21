@@ -1,0 +1,18 @@
+{
+  "name": "KhataMate — Digital Credit Ledger",
+  "short_name": "KhataMate",
+  "description": "Next-Gen Digital Credit & Udhar Ledger for Kirana & Local Businesses",
+  "start_url": "/en/dashboard",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F0A1E",
+  "theme_color": "#6C3AE8",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

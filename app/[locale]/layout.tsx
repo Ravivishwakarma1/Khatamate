@@ -54,8 +54,15 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
       <head>
-        <meta name="theme-color" content="#0F0A1E" />
+        <meta name="theme-color" content="#6C3AE8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="KhataMate" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
+
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
