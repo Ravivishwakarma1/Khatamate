@@ -76,7 +76,7 @@ export default function ReportsPage() {
 
   const totalCollections = useMemo(() => {
     return filteredTxs
-      .filter((t) => t.type === 'PAYMENT')
+      .filter((t) => t.type === 'PAYMENT' || t.type === 'ADVANCE')
       .reduce((sum, t) => sum + t.amount, 0);
   }, [filteredTxs]);
 

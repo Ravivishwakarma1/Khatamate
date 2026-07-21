@@ -193,7 +193,7 @@ function PassbookContent() {
 
     filteredTransactions.forEach((tx) => {
       if (tx.type === 'CREDIT') creditTotal += tx.amount;
-      if (tx.type === 'PAYMENT') paymentTotal += tx.amount;
+      if (tx.type === 'PAYMENT' || tx.type === 'ADVANCE') paymentTotal += tx.amount;
     });
 
     return { creditTotal, paymentTotal };
@@ -345,7 +345,7 @@ function PassbookContent() {
                         </div>
                         <div>
                           <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>
-                            {tx.type === 'CREDIT' ? 'Credit Entry (Udhar)' : 'Payment Received (Jama)'}
+                            {tx.type === 'CREDIT' ? 'Credit Entry (Udhar)' : tx.type === 'ADVANCE' ? 'Advance Payment (Jama)' : 'Payment Received (Jama)'}
                           </div>
                           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
                             {new Date(tx.transaction_at).toLocaleString('en-IN', {

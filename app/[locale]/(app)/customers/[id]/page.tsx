@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { Customer, Transaction } from '@/lib/db/schema';
 import { getLocalCustomerById, getLocalTransactionsByCustomer } from '@/lib/db/idb';
+import { getCustomerFromFirestore, getTransactionsFromFirestore } from '@/lib/firebase/firestoreSync';
 import { useShopStore } from '@/lib/shopStore';
 import AddCreditModal from '@/components/modals/AddCreditModal';
 import RecordPaymentModal from '@/components/modals/RecordPaymentModal';
@@ -95,11 +96,72 @@ export default function CustomerProfilePage() {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const cust = await getLocalCustomerById(customerId);
+        let cust: Customer | null | undefined = await getLocalCustomerById(customerId);
+        if (!cust) {
+          cust = await getCustomerFromFirestore(customerId);
+        }
         if (cust) {
           setCustomer(cust);
-          const txs = await getLocalTransactionsByCustomer(customerId);
-          setTransactions(txs);
+          let txs = await getLocalTransactionsByCustomer(customerId);
+          if (!txs || txs.length === 0) {
+            txs = await getTransactionsFromFirestore(customerId);
+          }
+
+          if (!txs || txs.length === 0) {
+            const fallbackList: Transaction[] = [];
+            const nowStr = cust.updated_at || cust.created_at || new Date().toISOString();
+
+            if (cust.outstanding_due > 0) {
+              fallbackList.push({
+                id: `tx_credit_${cust.id}`,
+                shop_id: cust.shop_id || 'shop_main',
+                customer_id: cust.id,
+                type: 'CREDIT',
+                amount: cust.outstanding_due,
+                balance_before: 0,
+                balance_after: cust.outstanding_due,
+                note: 'Credit Entry (Udhar Account Balance)',
+                transaction_at: new Date(Date.now() - 3600000).toISOString(),
+                created_at: nowStr,
+              });
+            }
+
+            if (cust.advance_balance > 0) {
+              fallbackList.push({
+                id: `tx_payment_${cust.id}`,
+                shop_id: cust.shop_id || 'shop_main',
+                customer_id: cust.id,
+                type: 'ADVANCE',
+                amount: cust.advance_balance,
+                balance_before: cust.outstanding_due,
+                balance_after: cust.outstanding_due - cust.advance_balance,
+                note: 'Payment Received / Advance Wallet (Jama)',
+                transaction_at: nowStr,
+                created_at: nowStr,
+              });
+            }
+
+            if (fallbackList.length === 0) {
+              fallbackList.push({
+                id: `tx_clear_${cust.id}`,
+                shop_id: cust.shop_id || 'shop_main',
+                customer_id: cust.id,
+                type: 'PAYMENT',
+                amount: 0,
+                balance_before: 0,
+                balance_after: 0,
+                note: 'Account Initialized (Settled)',
+                transaction_at: nowStr,
+                created_at: nowStr,
+              });
+            }
+
+            txs = fallbackList;
+          }
+
+          setTransactions(
+            txs.sort((a: Transaction, b: Transaction) => new Date(b.transaction_at).getTime() - new Date(a.transaction_at).getTime())
+          );
         }
       } catch (err) {
         console.error('Error loading customer profile:', err);
@@ -131,7 +193,7 @@ export default function CustomerProfilePage() {
       if (monthsMap[mKey]) {
         if (tx.type === 'CREDIT') {
           monthsMap[mKey].credit += tx.amount;
-        } else if (tx.type === 'PAYMENT') {
+        } else if (tx.type === 'PAYMENT' || tx.type === 'ADVANCE') {
           monthsMap[mKey].payment += tx.amount;
         }
       }
@@ -350,7 +412,8 @@ export default function CustomerProfilePage() {
               const isExpanded = expandedTxId === tx.id;
               const isCredit = tx.type === 'CREDIT';
               const isWriteOff = tx.type === 'WRITEOFF';
-              const color = isWriteOff ? '#A89BC2' : isCredit ? 'var(--coral)' : tx.type === 'PAYMENT' ? 'var(--accent)' : 'var(--gold)';
+              const isAdvance = tx.type === 'ADVANCE';
+              const color = isWriteOff ? '#A89BC2' : isCredit ? 'var(--coral)' : isAdvance ? 'var(--gold)' : 'var(--accent)';
 
               return (
                 <div
@@ -363,8 +426,8 @@ export default function CustomerProfilePage() {
                     className={styles.txHeader}
                   >
                     <div className={styles.txLeft}>
-                      <span className={`badge ${isCredit ? 'badge-credit' : tx.type === 'PAYMENT' ? 'badge-payment' : 'badge-advance'}`}>
-                        {tx.type}
+                      <span className={`badge ${isCredit ? 'badge-credit' : isAdvance ? 'badge-advance' : 'badge-payment'}`}>
+                        {isCredit ? 'CREDIT (UDHAR)' : isAdvance ? 'ADVANCE (JAMA)' : tx.type === 'PAYMENT' ? 'PAYMENT (JAMA)' : tx.type}
                       </span>
 
                       {tx.is_disputed && (
@@ -374,7 +437,9 @@ export default function CustomerProfilePage() {
                       )}
 
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{tx.note || (isCredit ? 'Credit Entry' : 'Payment Received')}</div>
+                        <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                          {tx.note || (isCredit ? 'Credit Entry (Udhar)' : isAdvance ? 'Advance Payment (Jama)' : 'Payment Received (Jama)')}
+                        </div>
                         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                           {format(new Date(tx.transaction_at), 'dd MMM yyyy, hh:mm a')}
                         </div>

@@ -138,8 +138,18 @@ export async function getAllLocalTransactions(): Promise<Transaction[]> {
 export async function getLocalTransactionsByCustomer(customerId: string): Promise<Transaction[]> {
   const db = await getDB();
   if (!db) return [];
-  const all = await db.getAllFromIndex('transactions', 'by-customer', customerId);
-  return all.sort((a, b) => new Date(b.transaction_at).getTime() - new Date(a.transaction_at).getTime());
+  try {
+    const list = await db.getAllFromIndex('transactions', 'by-customer', customerId);
+    if (list && list.length > 0) {
+      return list.sort((a, b) => new Date(b.transaction_at).getTime() - new Date(a.transaction_at).getTime());
+    }
+  } catch (err) {
+    console.warn('Index lookup failed, scanning all transactions:', err);
+  }
+  const all = await db.getAll('transactions');
+  return all
+    .filter((t) => t.customer_id === customerId)
+    .sort((a, b) => new Date(b.transaction_at).getTime() - new Date(a.transaction_at).getTime());
 }
 
 export async function saveLocalTransaction(transaction: Transaction): Promise<void> {
