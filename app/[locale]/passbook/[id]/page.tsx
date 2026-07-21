@@ -66,40 +66,57 @@ function PassbookContent() {
           }
 
           if (!txList || txList.length === 0) {
-
+            const fallbackList: Transaction[] = [];
             const nowStr = custData.updated_at || custData.created_at || new Date().toISOString();
+
             if (custData.outstanding_due > 0) {
-              txList = [
-                {
-                  id: `tx_opening_${custData.id}`,
-                  shop_id: custData.shop_id || 'shop_main',
-                  customer_id: custData.id,
-                  type: 'CREDIT',
-                  amount: custData.outstanding_due,
-                  balance_before: 0,
-                  balance_after: custData.outstanding_due,
-                  note: 'Opening Outstanding Ledger Entry (Udhar)',
-                  transaction_at: nowStr,
-                  created_at: nowStr,
-                },
-              ];
-            } else if (custData.advance_balance > 0) {
-              txList = [
-                {
-                  id: `tx_opening_${custData.id}`,
-                  shop_id: custData.shop_id || 'shop_main',
-                  customer_id: custData.id,
-                  type: 'PAYMENT',
-                  amount: custData.advance_balance,
-                  balance_before: 0,
-                  balance_after: custData.advance_balance,
-                  note: 'Advance Deposit Balance (Jama)',
-                  transaction_at: nowStr,
-                  created_at: nowStr,
-                },
-              ];
+              fallbackList.push({
+                id: `tx_credit_${custData.id}`,
+                shop_id: custData.shop_id || 'shop_main',
+                customer_id: custData.id,
+                type: 'CREDIT',
+                amount: custData.outstanding_due,
+                balance_before: 0,
+                balance_after: custData.outstanding_due,
+                note: 'Credit Entry (Udhar Account Balance)',
+                transaction_at: new Date(Date.now() - 3600000).toISOString(),
+                created_at: nowStr,
+              });
             }
+
+            if (custData.advance_balance > 0) {
+              fallbackList.push({
+                id: `tx_payment_${custData.id}`,
+                shop_id: custData.shop_id || 'shop_main',
+                customer_id: custData.id,
+                type: 'PAYMENT',
+                amount: custData.advance_balance,
+                balance_before: custData.outstanding_due,
+                balance_after: custData.outstanding_due - custData.advance_balance,
+                note: 'Payment Received / Advance Wallet (Jama)',
+                transaction_at: nowStr,
+                created_at: nowStr,
+              });
+            }
+
+            if (fallbackList.length === 0) {
+              fallbackList.push({
+                id: `tx_clear_${custData.id}`,
+                shop_id: custData.shop_id || 'shop_main',
+                customer_id: custData.id,
+                type: 'PAYMENT',
+                amount: 0,
+                balance_before: 0,
+                balance_after: 0,
+                note: 'Account Initialized (Settled)',
+                transaction_at: nowStr,
+                created_at: nowStr,
+              });
+            }
+
+            txList = fallbackList;
           }
+
 
           setTransactions(
             txList.sort((a: Transaction, b: Transaction) => new Date(b.transaction_at).getTime() - new Date(a.transaction_at).getTime())
