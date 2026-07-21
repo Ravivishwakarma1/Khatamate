@@ -80,8 +80,8 @@ function PassbookContent() {
                 if (Array.isArray(parsed) && parsed.length > 0) {
                   const decodedList: Transaction[] = parsed.map((item: any) => ({
                     id: item.id || `tx_${Math.random().toString(36).substring(2, 7)}`,
-                    shop_id: custData.shop_id || 'shop_main',
-                    customer_id: custData.id,
+                    shop_id: custData?.shop_id || 'shop_main',
+                    customer_id: custData?.id || customerId,
                     type: item.type || (item.t === 'CREDIT' ? 'CREDIT' : 'PAYMENT'),
                     amount: Number(item.amount ?? item.a) || 0,
                     balance_before: Number(item.balance_before ?? item.bb) || 0,
@@ -157,6 +157,22 @@ function PassbookContent() {
             txList = fallbackList;
           }
 
+
+          if (txList && txList.length > 0) {
+            let totalCredit = 0;
+            let totalJama = 0;
+            txList.forEach((tx) => {
+              if (tx.type === 'CREDIT') totalCredit += tx.amount;
+              if (tx.type === 'PAYMENT' || tx.type === 'ADVANCE') totalJama += tx.amount;
+            });
+            const netDiff = totalJama - totalCredit;
+            custData = {
+              ...custData,
+              outstanding_due: netDiff < 0 ? Math.abs(netDiff) : 0,
+              advance_balance: netDiff > 0 ? netDiff : 0,
+            };
+            setCustomer(custData);
+          }
 
           setTransactions(
             txList.sort((a: Transaction, b: Transaction) => new Date(b.transaction_at).getTime() - new Date(a.transaction_at).getTime())
@@ -288,26 +304,32 @@ function PassbookContent() {
 
           <div className={styles.balanceRow}>
             <div>
-              <div className={styles.balLabel}>Current Net Balance</div>
+              <div className={styles.balLabel}>
+                {customer.outstanding_due > 0
+                  ? 'OUTSTANDING UDHAR DUE'
+                  : customer.advance_balance > 0
+                  ? 'JAMA ADVANCE WALLET (SURPLUS)'
+                  : 'CURRENT NET BALANCE'}
+              </div>
               <div
                 className={styles.balVal}
                 style={{
-                  color: customer.outstanding_due > 0 ? 'var(--coral)' : customer.advance_balance > 0 ? 'var(--gold)' : 'var(--accent)',
+                  color: customer.outstanding_due > 0 ? 'var(--coral)' : customer.advance_balance > 0 ? 'var(--accent)' : 'var(--text-muted)',
                 }}
               >
-                ₹ {customer.outstanding_due > 0 ? customer.outstanding_due.toFixed(2) : customer.advance_balance.toFixed(2)}
+                ₹ {customer.outstanding_due > 0 ? customer.outstanding_due.toFixed(2) : customer.advance_balance > 0 ? customer.advance_balance.toFixed(2) : '0.00'}
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <span
                 className="badge"
                 style={{
-                  background: customer.outstanding_due > 0 ? 'rgba(255,107,107,0.2)' : 'rgba(0,201,167,0.2)',
-                  color: customer.outstanding_due > 0 ? 'var(--coral)' : 'var(--accent)',
+                  background: customer.outstanding_due > 0 ? 'rgba(255,107,107,0.2)' : customer.advance_balance > 0 ? 'rgba(0,201,167,0.2)' : 'rgba(255,255,255,0.1)',
+                  color: customer.outstanding_due > 0 ? 'var(--coral)' : customer.advance_balance > 0 ? 'rgba(0,201,167,1)' : 'var(--text-muted)',
                   fontWeight: 800,
                 }}
               >
-                {customer.outstanding_due > 0 ? '🔴 Udhar Pending' : '🟢 Account Clear'}
+                {customer.outstanding_due > 0 ? '🔴 Udhar Pending' : customer.advance_balance > 0 ? '🟢 Advance Available (Jama)' : '🟢 Account Settled'}
               </span>
             </div>
           </div>
