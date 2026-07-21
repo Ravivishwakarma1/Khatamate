@@ -1,0 +1,40 @@
+{
+  "name": "khataflow",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.9.0",
+    "@supabase/ssr": "^0.4.0",
+    "@supabase/supabase-js": "^2.44.4",
+    "@tanstack/react-query": "^5.51.11",
+    "date-fns": "^3.6.0",
+    "firebase": "^12.16.0",
+    "fuse.js": "^7.0.0",
+    "idb": "^8.0.0",
+    "lucide-react": "^0.414.0",
+    "next": "^16.2.10",
+    "next-intl": "^4.13.2",
+    "qrcode.react": "^3.1.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-hook-form": "^7.52.1",
+    "recharts": "^2.12.7",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.11",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^16.2.10",
+    "typescript": "^5.5.3"
+  }
+}

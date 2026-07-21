@@ -1,0 +1,67 @@
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(36, 22, 66, 0.6) 25%,
+    rgba(139, 92, 246, 0.15) 50%,
+    rgba(36, 22, 66, 0.6) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+  border-radius: var(--radius-md);
+}
+
+.text {
+  height: 16px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.circle {
+  border-radius: var(--radius-full);
+}
+
+.rect {
+  border-radius: var(--radius-md);
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cardLines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

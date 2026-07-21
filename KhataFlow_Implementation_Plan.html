@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KhataFlow – Web App Implementation Plan v2.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6C3AE8;
+      --primary-light: #8B5CF6;
+      --primary-dark: #4C1D95;
+      --accent: #00C9A7;
+      --accent-light: #34D399;
+      --gold: #F59E0B;
+      --coral: #F43F5E;
+      --blue: #3B82F6;
+      --bg: #0F0A1E;
+      --bg-card: #1A1030;
+      --bg-card2: #1E1535;
+      --text: #F8F4FF;
+      --text-muted: #A89BC2;
+      --text-dim: #6B5B8A;
+      --border: rgba(108,58,232,0.25);
+      --border-light: rgba(108,58,232,0.12);
+      --gradient: linear-gradient(135deg, #6C3AE8 0%, #00C9A7 100%);
+      --gradient-soft: linear-gradient(135deg, rgba(108,58,232,0.15) 0%, rgba(0,201,167,0.15) 100%);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+
+    /* PRINT BUTTON */
+    .print-btn {
+      position: fixed; top: 20px; right: 20px; z-index: 999;
+      background: var(--gradient);
+      color: #fff; border: none; border-radius: 12px;
+      padding: 12px 24px; font-size: 14px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 8px 32px rgba(108,58,232,0.4);
+      transition: all 0.3s; font-family: 'Inter', sans-serif;
+    }
+    .print-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(108,58,232,0.5); }
+
+    /* COVER */
+    .cover {
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(108,58,232,0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(0,201,167,0.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 80%, rgba(108,58,232,0.2) 0%, transparent 40%),
+        var(--bg);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      text-align: center; position: relative; overflow: hidden; padding: 80px 32px;
+    }
+    .cover::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%236C3AE8' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .cover-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(108,58,232,0.2); border: 1px solid rgba(108,58,232,0.4);
+      border-radius: 50px; padding: 8px 20px; margin-bottom: 28px;
+      font-size: 12px; font-weight: 600; color: var(--primary-light);
+      text-transform: uppercase; letter-spacing: 1.5px; position: relative; z-index: 1;
+    }
+    .cover-logo {
+      width: 110px; height: 110px; border-radius: 28px;
+      background: var(--gradient);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px; margin: 0 auto 28px;
+      box-shadow: 0 20px 60px rgba(108,58,232,0.4);
+      position: relative; z-index: 1;
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    .cover-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 68px; font-weight: 900;
+      background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, var(--primary-light) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1.1; margin-bottom: 12px; position: relative; z-index: 1;
+    }
+    .cover-sub {
+      font-family: 'Poppins', sans-serif;
+      font-size: 20px; font-weight: 600; color: var(--primary-light);
+      margin-bottom: 16px; position: relative; z-index: 1;
+    }
+    .cover-tagline {
+      font-size: 17px; font-weight: 300; color: var(--text-muted);
+      margin-bottom: 48px; position: relative; z-index: 1; max-width: 560px;
+    }
+    .cover-stats {
+      display: flex; gap: 48px; justify-content: center;
+      position: relative; z-index: 1; flex-wrap: wrap; margin-bottom: 48px;
+    }
+    .cover-stat { text-align: center; }
+    .cover-stat-num {
+      font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 800;
+      background: var(--gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .cover-stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+    .cover-divider { width: 60px; height: 4px; border-radius: 2px; background: var(--gradient); margin: 0 auto 24px; position: relative; z-index: 1; }
+    .cover-meta { font-size: 13px; color: var(--text-dim); position: relative; z-index: 1; }
+    .cover-circles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .cover-circle { position: absolute; border-radius: 50%; border: 1px solid rgba(108,58,232,0.1); }
+
+    /* CONTAINER */
+    .container { max-width: 960px; margin: 0 auto; padding: 0 32px; }
+
+    /* SECTIONS */
+    section { padding: 64px 0; }
+    section:nth-child(even) { background: rgba(26,16,48,0.4); }
+
+    .section-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+      color: var(--accent); margin-bottom: 12px;
+    }
+    .section-label::before { content: ''; width: 20px; height: 2px; background: var(--accent); border-radius: 1px; }
+    h2 { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+    h2 span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .section-desc { font-size: 16px; color: var(--text-muted); max-width: 640px; line-height: 1.8; margin-bottom: 40px; }
+    h3 { font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+    h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    p { color: var(--text-muted); margin-bottom: 14px; }
+
+    /* CARDS */
+    .card-grid { display: grid; gap: 20px; }
+    .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .card-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .card-grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 18px; padding: 24px; position: relative; overflow: hidden; transition: all 0.3s;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(108,58,232,0.5), transparent);
+    }
+    .card:hover { border-color: rgba(108,58,232,0.4); transform: translateY(-3px); box-shadow: 0 16px 50px rgba(108,58,232,0.12); }
+    .card-icon { font-size: 28px; margin-bottom: 12px; display: block; }
+    .card h3 { font-size: 16px; margin-bottom: 8px; }
+    .card p { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.6; }
+
+    /* PHASE CARDS */
+    .phase-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 32px; margin-bottom: 32px; position: relative; overflow: hidden;
+    }
+    .phase-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--gradient);
+    }
+    .phase-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .phase-emoji { font-size: 32px; }
+    .phase-title-group {}
+    .phase-tag {
+      display: inline-block; border-radius: 8px; padding: 3px 12px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
+    }
+    .phase-tag.purple { background: rgba(108,58,232,0.2); color: var(--primary-light); border: 1px solid rgba(108,58,232,0.3); }
+    .phase-tag.green { background: rgba(0,201,167,0.15); color: var(--accent); border: 1px solid rgba(0,201,167,0.3); }
+    .phase-tag.gold { background: rgba(245,158,11,0.15); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
+    .phase-tag.blue { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+    .phase-tag.dark { background: rgba(255,255,255,0.08); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
+    .phase-card h3 { font-size: 22px; margin: 0; }
+    .phase-duration { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+
+    /* SUB-SECTIONS */
+    .sub-section { margin-bottom: 28px; }
+    .sub-section-title {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700;
+      color: var(--primary-light); margin-bottom: 14px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sub-section-title span { font-size: 18px; }
+
+    /* FEATURE LIST */
+    .feature-list { list-style: none; }
+    .feature-list li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 13.5px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.6;
+    }
+    .feature-list li::before { content: '✓'; color: var(--accent); font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+    .feature-list li strong { color: var(--text); font-weight: 600; }
+
+    /* HIGHLIGHT BOX */
+    .highlight-box {
+      background: var(--gradient-soft); border: 1px solid rgba(108,58,232,0.3);
+      border-radius: 16px; padding: 24px; margin: 20px 0;
+    }
+    .highlight-box.gold { background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03)); border-color: rgba(245,158,11,0.25); }
+    .highlight-box.teal { background: linear-gradient(135deg, rgba(0,201,167,0.08), rgba(0,201,167,0.03)); border-color: rgba(0,201,167,0.25); }
+    .highlight-box.coral { background: linear-gradient(135deg, rgba(244,63,94,0.08), rgba(244,63,94,0.03)); border-color: rgba(244,63,94,0.25); }
+    .highlight-box h4 { margin-bottom: 10px; font-size: 14px; }
+    .highlight-box p { font-size: 13px; margin: 0; }
+
+    /* TABLES */
+    .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+    .data-table th {
+      text-align: left; padding: 12px 16px;
+      background: rgba(108,58,232,0.15);
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--primary-light);
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--border-light); color: var(--text-muted); vertical-align: top; }
+    .data-table td:first-child { font-weight: 600; color: var(--text); }
+    .data-table tr:hover td { background: rgba(108,58,232,0.04); }
+    .data-table tr:last-child td { border: none; }
+
+    /* SCHEMA TABLE */
+    .schema-table { width: 100%; border-collapse: collapse; font-family: 'Fira Code', monospace; font-size: 12px; margin-bottom: 24px; }
+    .schema-table caption { text-align: left; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); padding: 10px 0; margin-bottom: 6px; }
+    .schema-table th { background: rgba(108,58,232,0.2); color: var(--primary-light); padding: 9px 14px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; text-align: left; border: 1px solid var(--border); }
+    .schema-table td { padding: 9px 14px; border: 1px solid var(--border-light); color: var(--text-muted); vertical-align: top; }
+    .schema-table td:first-child { color: var(--accent); font-weight: 500; }
+    .schema-table td:nth-child(2) { color: var(--gold); }
+    .pk { color: var(--gold) !important; font-weight: 700; }
+    .fk { color: var(--coral) !important; }
+
+    /* CODE */
+    code { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--accent); background: rgba(0,201,167,0.08); border-radius: 4px; padding: 2px 7px; border: 1px solid rgba(0,201,167,0.15); }
+    pre {
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; overflow-x: auto;
+      font-family: 'Fira Code', monospace; font-size: 12px; color: #C9D1D9; line-height: 1.6;
+      margin: 16px 0;
+    }
+    pre .kw { color: #FF7B72; }
+    pre .str { color: #A5D6FF; }
+    pre .cm { color: #6E7681; font-style: italic; }
+    pre .fn { color: #D2A8FF; }
+    pre .num { color: #F2CC60; }
+    pre .acc { color: var(--accent); }
+
+    /* TECH BADGE */
+    .tech-badge {
+      display: inline-block; background: rgba(0,201,167,0.12);
+      border: 1px solid rgba(0,201,167,0.2); border-radius: 6px;
+      padding: 2px 9px; font-size: 11px; font-weight: 600;
+      color: var(--accent); font-family: 'Fira Code', monospace; margin: 2px;
+    }
+
+    /* TIMELINE */
+    .timeline { position: relative; }
+    .timeline::before { content: ''; position: absolute; left: 16px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--primary), var(--accent)); }
+    .timeline-item { display: flex; gap: 20px; padding: 0 0 24px 0; position: relative; }
+    .timeline-dot {
+      width: 34px; height: 34px; border-radius: 50%; background: var(--gradient);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 14px; box-shadow: 0 0 0 6px var(--bg); z-index: 1; position: relative;
+    }
+    .timeline-content { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-top: 2px; }
+    .timeline-content h4 { font-size: 16px; margin-bottom: 10px; }
+
+    /* METRIC CARD */
+    .metric-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 24px; text-align: center; }
+    .metric-value {
+      font-family: 'Poppins', sans-serif; font-size: 40px; font-weight: 900; line-height: 1;
+      background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px;
+    }
+    .metric-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+    /* ARCH BOX */
+    .arch-box {
+      background: rgba(0,0,0,0.5); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px; font-family: 'Fira Code', monospace;
+      font-size: 13px; color: #A89BC2; line-height: 1.8; white-space: pre;
+      overflow-x: auto;
+    }
+    .arch-box .layer-client { color: var(--primary-light); }
+    .arch-box .layer-server { color: var(--accent); }
+    .arch-box .layer-arrow { color: var(--gold); }
+
+    /* DIVIDER */
+    .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 40px 0; }
+
+    /* LANG TABLE */
+    .lang-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+    .lang-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s;
+    }
+    .lang-card:hover { border-color: rgba(108,58,232,0.4); transform: translateY(-2px); }
+    .lang-card .lang-flag { font-size: 26px; display: block; margin-bottom: 8px; }
+    .lang-card .lang-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .lang-card .lang-native { font-size: 13px; color: var(--accent); margin-top: 2px; }
+    .lang-card .lang-phase { font-size: 10px; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* CHECKLIST */
+    .checklist { list-style: none; }
+    .checklist li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 13px; color: var(--text-muted); padding: 7px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .checklist li:last-child { border: none; }
+    .checklist li::before { content: '→'; color: var(--primary-light); font-weight: 700; flex-shrink: 0; }
+
+    /* FILE TREE */
+    .file-tree { background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 14px; padding: 24px; font-family: 'Fira Code', monospace; font-size: 12px; color: var(--text-muted); line-height: 1.9; }
+    .file-tree .dir { color: var(--primary-light); font-weight: 500; }
+    .file-tree .file { color: var(--text-muted); }
+    .file-tree .comment { color: var(--text-dim); }
+
+    /* FOOTER */
+    footer { background: var(--bg-card); border-top: 1px solid var(--border); padding: 48px 0; text-align: center; }
+    .footer-logo { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; }
+    .footer-text { font-size: 13px; color: var(--text-dim); }
+
+    /* PRIORITY BADGE */
+    .p-critical { background: rgba(244,63,94,0.15); color: #F43F5E; border-radius: 6px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+    .p-high { background: rgba(245,158,11,0.15); color: #F59E0B; border-radius: 6px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+    .p-med { background: rgba(59,130,246,0.15); color: #60A5FA; border-radius: 6px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+    .p-low { background: rgba(0,201,167,0.15); color: #00C9A7; border-radius: 6px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+
+    /* TOC */
+    .toc { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 32px; }
+    .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 20px; }
+    .toc-item a {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+      border-radius: 10px; text-decoration: none; color: var(--text-muted); font-size: 13.5px; transition: all 0.2s;
+    }
+    .toc-item a:hover { background: rgba(108,58,232,0.1); color: var(--text); }
+    .toc-num {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--gradient-soft); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: var(--primary-light); flex-shrink: 0;
+    }
+
+    /* BLOCKQUOTE */
+    .blockquote {
+      border-left: 4px solid var(--primary); padding: 18px 24px; margin: 28px 0;
+      background: rgba(108,58,232,0.06); border-radius: 0 12px 12px 0;
+    }
+    .blockquote p { font-size: 17px; font-style: italic; color: var(--text); margin: 0; }
+    .blockquote cite { display: block; margin-top: 10px; font-size: 12px; color: var(--text-muted); font-style: normal; }
+
+    /* PRINT STYLES */
+    @media print {
+      body { background: #fff !important; color: #1a1a1a !important; }
+      .print-btn { display: none !important; }
+      .cover {
+        background: linear-gradient(135deg, #4C1D95, #059669) !important;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        min-height: 100vh;
+      }
+      section { page-break-inside: avoid; }
+      .phase-card { page-break-inside: avoid; }
+      .data-table { font-size: 11px; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+
+    @media (max-width: 768px) {
+      .cover-title { font-size: 44px; }
+      .card-grid-2, .card-grid-3, .card-grid-4 { grid-template-columns: 1fr; }
+      .lang-grid { grid-template-columns: repeat(2, 1fr); }
+      .toc-grid { grid-template-columns: 1fr; }
+      .arch-box { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">🖨️ Save as PDF</button>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-circles">
+    <div class="cover-circle" style="width:600px;height:600px;top:-100px;left:-150px;"></div>
+    <div class="cover-circle" style="width:400px;height:400px;bottom:50px;right:-100px;"></div>
+    <div class="cover-circle" style="width:250px;height:250px;top:40%;left:60%;"></div>
+  </div>
+  <div class="cover-badge">📋 Web App Implementation Plan · v2.0</div>
+  <div class="cover-logo">📒</div>
+  <h1 class="cover-title">KhataFlow</h1>
+  <p class="cover-sub">Web App Implementation Plan</p>
+  <p class="cover-tagline">
+    Next-Generation Digital Credit Ledger for<br/>Kirana Stores, Dairy Shops &amp; Local Retailers
+  </p>
+  <div class="cover-stats">
+    <div class="cover-stat"><div class="cover-stat-num">5</div><div class="cover-stat-label">Dev Phases</div></div>
+    <div class="cover-stat"><div class="cover-stat-num">6</div><div class="cover-stat-label">Weeks Build</div></div>
+    <div class="cover-stat"><div class="cover-stat-num">8</div><div class="cover-stat-label">Languages</div></div>
+    <div class="cover-stat"><div class="cover-stat-num">∞</div><div class="cover-stat-label">Audit Trail</div></div>
+  </div>
+  <div class="cover-divider"></div>
+  <p class="cover-meta">Prepared · July 2026 &nbsp;|&nbsp; KhataFlow Team &nbsp;|&nbsp; Confidential</p>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<section id="toc">
+  <div class="container">
+    <div class="section-label">Navigation</div>
+    <h2>Table of <span>Contents</span></h2>
+    <div class="toc">
+      <div class="toc-grid">
+        <div class="toc-item"><a href="#architecture"><span class="toc-num">01</span> Architecture Overview</a></div>
+        <div class="toc-item"><a href="#techstack"><span class="toc-num">02</span> Tech Stack Decisions</a></div>
+        <div class="toc-item"><a href="#languages"><span class="toc-num">03</span> Language Support (i18n)</a></div>
+        <div class="toc-item"><a href="#database"><span class="toc-num">04</span> Database Schema</a></div>
+        <div class="toc-item"><a href="#filestructure"><span class="toc-num">05</span> Project File Structure</a></div>
+        <div class="toc-item"><a href="#phase1"><span class="toc-num">06</span> Phase 1 — Foundation &amp; Auth</a></div>
+        <div class="toc-item"><a href="#phase2"><span class="toc-num">07</span> Phase 2 — Customer Management</a></div>
+        <div class="toc-item"><a href="#phase3"><span class="toc-num">08</span> Phase 3 — Reports &amp; Analytics</a></div>
+        <div class="toc-item"><a href="#phase4"><span class="toc-num">09</span> Phase 4 — Settings &amp; i18n</a></div>
+        <div class="toc-item"><a href="#phase5"><span class="toc-num">10</span> Phase 5 — Power Features</a></div>
+        <div class="toc-item"><a href="#deployment"><span class="toc-num">11</span> Deployment Plan</a></div>
+        <div class="toc-item"><a href="#verification"><span class="toc-num">12</span> Verification Plan</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 01 - ARCHITECTURE -->
+<section id="architecture">
+  <div class="container">
+    <div class="section-label">01 · Architecture</div>
+    <h2>System <span>Architecture</span></h2>
+    <p class="section-desc">A full-stack web application with offline-first capabilities, cloud sync, and real-time multi-device support.</p>
+
+    <div class="arch-box"><span class="layer-client">┌─────────────────────────────────────────────────────┐
+│                  CLIENT (Browser)                    │
+│  Next.js 14 App Router  ·  TypeScript  ·  PWA       │
+│  ─────────────────────────────────────────────────  │
+│  Zustand (state)  ·  IndexedDB (offline cache)      │
+│  Fuse.js (fuzzy search)  ·  Recharts (charts)       │
+│  next-intl (i18n)  ·  React Hook Form + Zod         │
+└────────────────────┬────────────────────────────────┘</span>
+<span class="layer-arrow">                     │ HTTPS / REST / Realtime WebSocket</span>
+<span class="layer-server">┌────────────────────▼────────────────────────────────┐
+│              BACKEND (Supabase)                      │
+│  ─────────────────────────────────────────────────  │
+│  Auth: Email+Password · Google OAuth · Email OTP    │
+│  Database: PostgreSQL (Row-Level Security)          │
+│  Storage: Supabase Storage (photos, PDFs, backups)  │
+│  Realtime: Live sync across devices                 │
+│  Edge Functions: PDF generation, bulk operations    │
+└─────────────────────────────────────────────────────┘</span>
+<span class="layer-arrow">                     │ CDN + Edge Network</span>
+<span class="layer-client">┌────────────────────▼────────────────────────────────┐
+│              DEPLOYMENT (Vercel)                     │
+│  Auto-deploy on git push · Preview per PR           │
+│  Edge functions · Global CDN                        │
+└─────────────────────────────────────────────────────┘</span></div>
+
+    <div class="divider"></div>
+
+    <h3>Key Design Decisions</h3>
+    <div class="card-grid card-grid-3" style="margin-top:20px;">
+      <div class="card">
+        <span class="card-icon">🔌</span>
+        <h3>Offline-First</h3>
+        <p>All reads/writes go to IndexedDB first. Supabase syncs in the background. Zero downtime regardless of connectivity.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔐</span>
+        <h3>Row-Level Security</h3>
+        <p>Every database row is protected by Supabase RLS policies. Users can only access data belonging to their shop.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">📱</span>
+        <h3>PWA + Responsive</h3>
+        <p>Installable as a home screen app on mobile. Desktop sidebar + mobile bottom nav with identical functionality.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 - TECH STACK -->
+<section id="techstack">
+  <div class="container">
+    <div class="section-label">02 · Technology</div>
+    <h2>Tech <span>Stack</span></h2>
+    <p class="section-desc">Every technology chosen for a specific reason — no over-engineering, no unnecessary complexity.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>Layer</th><th>Technology</th><th>Why This Choice</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>📱 Framework</td><td><span class="tech-badge">Next.js 14</span> + <span class="tech-badge">TypeScript</span></td><td>SSR, App Router, PWA support, API routes, best DX in 2025</td></tr>
+        <tr><td>🎨 Styling</td><td><span class="tech-badge">Vanilla CSS</span> + CSS Variables</td><td>Full control, zero dependency, perfectly matches the design document palette</td></tr>
+        <tr><td>🔤 Fonts</td><td><span class="tech-badge">Inter</span> + <span class="tech-badge">Poppins</span></td><td>Matches the KhataFlow design document exactly</td></tr>
+        <tr><td>🔐 Auth</td><td><span class="tech-badge">Supabase Auth</span></td><td>Email+password, Google OAuth, OTP, email verification — all built-in, zero config</td></tr>
+        <tr><td>🗄️ Database</td><td><span class="tech-badge">Supabase PostgreSQL</span></td><td>Cloud-hosted Postgres with Row Level Security per user/shop</td></tr>
+        <tr><td>📁 File Storage</td><td><span class="tech-badge">Supabase Storage</span></td><td>Customer photos, PDF exports, JSON backups — CDN delivered</td></tr>
+        <tr><td>💾 Offline Cache</td><td><span class="tech-badge">IndexedDB</span> via <span class="tech-badge">idb</span></td><td>Instant reads, works 100% offline, syncs to cloud on reconnect</td></tr>
+        <tr><td>🗂️ State</td><td><span class="tech-badge">Zustand</span></td><td>Lightweight, TypeScript-friendly, no boilerplate, matches doc recommendation</td></tr>
+        <tr><td>🌐 Server State</td><td><span class="tech-badge">TanStack Query</span></td><td>Caching, background sync, optimistic updates, loading states</td></tr>
+        <tr><td>🔍 Search</td><td><span class="tech-badge">Fuse.js</span></td><td>Fuzzy matching across name/phone/room ID with configurable thresholds</td></tr>
+        <tr><td>📊 Charts</td><td><span class="tech-badge">Recharts</span></td><td>React-first, responsive, dark-mode friendly, D3 power</td></tr>
+        <tr><td>🌍 i18n</td><td><span class="tech-badge">next-intl</span></td><td>Best-in-class Next.js internationalization with URL-based locale routing</td></tr>
+        <tr><td>📝 Forms</td><td><span class="tech-badge">React Hook Form</span> + <span class="tech-badge">Zod</span></td><td>Fast, type-safe forms with schema validation</td></tr>
+        <tr><td>💬 WhatsApp</td><td><code>wa.me</code> deep link</td><td>Opens WhatsApp with pre-filled message — NO API, NO cost, instant</td></tr>
+        <tr><td>🚀 Deployment</td><td><span class="tech-badge">Vercel</span></td><td>Zero-config Next.js hosting, edge network, auto preview deployments on each PR</td></tr>
+      </tbody>
+    </table>
+
+    <div class="highlight-box teal" style="margin-top:28px;">
+      <h4 style="color:var(--accent);">💬 WhatsApp Integration (No API Required)</h4>
+      <p>When the shopkeeper clicks "Send Reminder", a modal opens with a pre-filled message template. The user can edit the message, then clicking "Send via WhatsApp" opens: <code>https://wa.me/91{phone}?text={encodedMessage}</code> — which redirects directly to WhatsApp with the message ready to send. No WhatsApp Business API, no approval, no cost.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 03 - LANGUAGES -->
+<section id="languages">
+  <div class="container">
+    <div class="section-label">03 · Localization</div>
+    <h2>Language <span>Support</span></h2>
+    <p class="section-desc">Built with next-intl — all UI strings are extracted into JSON locale files. Users choose their language in Settings; it's saved to their shop profile and persists across devices.</p>
+
+    <div class="lang-grid">
+      <div class="lang-card"><span class="lang-flag">🇬🇧</span><div class="lang-name">English</div><div class="lang-native">English</div><div class="lang-phase">Phase 1</div></div>
+      <div class="lang-card"><span class="lang-flag">🇮🇳</span><div class="lang-name">Hindi</div><div class="lang-native">हिन्दी</div><div class="lang-phase">Phase 1</div></div>
+      <div class="lang-card"><span class="lang-flag">🇮🇳</span><div class="lang-name">Marathi</div><div class="lang-native">मराठी</div><div class="lang-phase">Phase 5</div></div>
+      <div class="lang-card"><span class="lang-flag">🇮🇳</span><div class="lang-name">Tamil</div><div class="lang-native">தமிழ்</div><div class="lang-phase">Phase 5</div></div>
+      <div class="lang-card"><span class="lang-flag">🇮🇳</span><div class="lang-name">Telugu</div><div class="lang-native">తెలుగు</div><div class="lang-phase">Phase 5</div></div>
+      <div class="lang-card"><span class="lang-flag">🇮🇳</span><div class="lang-name">Bengali</div><div class="lang-native">বাংলা</div><div class="lang-phase">Phase 5</div></div>
+      <div class="lang-card"><span class="lang-flag">🇮🇳</span><div class="lang-name">Gujarati</div><div class="lang-native">ગુજરાતી</div><div class="lang-phase">Phase 5</div></div>
+      <div class="lang-card"><span class="lang-flag">🇮🇳</span><div class="lang-name">Punjabi</div><div class="lang-native">ਪੰਜਾਬੀ</div><div class="lang-phase">Phase 5</div></div>
+    </div>
+
+    <div class="highlight-box" style="margin-top:24px;">
+      <h4>🔄 How Locale Routing Works</h4>
+      <p>Next-intl adds a locale prefix to all URLs: <code>/en/customers</code>, <code>/hi/customers</code>. Switching language in Settings triggers a locale redirect. WhatsApp message templates are available in all installed languages.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 04 - DATABASE -->
+<section id="database">
+  <div class="container">
+    <div class="section-label">04 · Database</div>
+    <h2>Database <span>Schema</span></h2>
+    <p class="section-desc">Supabase PostgreSQL with Row Level Security. Every table is scoped to a shop_id. Users can only read/write their own shop's data — enforced at the database level, not just the application level.</p>
+
+    <table class="schema-table">
+      <caption>🏪 shops</caption>
+      <thead><tr><th>Column</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="pk">id</td><td>UUID</td><td>PRIMARY KEY</td><td>Unique shop identifier</td></tr>
+        <tr><td>owner_id</td><td>UUID</td><td class="fk">FK → auth.users.id</td><td>Account owner (from Supabase Auth)</td></tr>
+        <tr><td>name</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Shop name</td></tr>
+        <tr><td>address</td><td>TEXT</td><td>NULLABLE</td><td>Physical address</td></tr>
+        <tr><td>phone</td><td>VARCHAR(15)</td><td>NULLABLE</td><td>Shop contact number</td></tr>
+        <tr><td>gst_number</td><td>VARCHAR(15)</td><td>NULLABLE</td><td>GST registration number</td></tr>
+        <tr><td>plan</td><td>ENUM</td><td>DEFAULT 'FREE'</td><td>'FREE', 'PRO', 'BUSINESS'</td></tr>
+        <tr><td>settings</td><td>JSONB</td><td>NOT NULL</td><td>{ language, dark_mode, pin_enabled, accent_color }</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMPTZ</td><td>NOT NULL</td><td>Shop registration date</td></tr>
+      </tbody>
+    </table>
+
+    <table class="schema-table">
+      <caption>👥 customers</caption>
+      <thead><tr><th>Column</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="pk">id</td><td>UUID</td><td>PRIMARY KEY</td><td>Unique customer ID (UUID v4)</td></tr>
+        <tr><td>shop_id</td><td>UUID</td><td class="fk">FK → shops.id CASCADE</td><td>Which shop this customer belongs to</td></tr>
+        <tr><td>name</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Customer full name</td></tr>
+        <tr><td>phone</td><td>VARCHAR(15)</td><td>UNIQUE, NULLABLE</td><td>Mobile number (with country code)</td></tr>
+        <tr><td>room_id</td><td>VARCHAR(20)</td><td>NULLABLE</td><td>Room/Flat/Hostel ID</td></tr>
+        <tr><td>photo_url</td><td>TEXT</td><td>NULLABLE</td><td>Supabase Storage path for customer photo</td></tr>
+        <tr><td>credit_limit</td><td>DECIMAL(10,2)</td><td>DEFAULT 0</td><td>Max credit allowed (0 = no limit)</td></tr>
+        <tr><td>advance_balance</td><td>DECIMAL(10,2)</td><td>DEFAULT 0</td><td>Overpayment wallet balance</td></tr>
+        <tr><td>outstanding_due</td><td>DECIMAL(10,2)</td><td>DEFAULT 0</td><td>Cached current outstanding (recalculated on each transaction)</td></tr>
+        <tr><td>notes</td><td>TEXT</td><td>NULLABLE</td><td>Internal shop notes about customer</td></tr>
+        <tr><td>tags</td><td>JSONB</td><td>DEFAULT '[]'</td><td>Custom tags array e.g. ["regular", "vip"]</td></tr>
+        <tr><td>family_id</td><td>UUID</td><td class="fk">FK → customers.id, NULLABLE</td><td>Head-of-family for linked accounts</td></tr>
+        <tr><td>is_active</td><td>BOOLEAN</td><td>DEFAULT TRUE</td><td>Soft-delete flag</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMPTZ</td><td>NOT NULL</td><td>Account creation timestamp</td></tr>
+        <tr><td>updated_at</td><td>TIMESTAMPTZ</td><td>NOT NULL</td><td>Last modification (auto-updated by trigger)</td></tr>
+      </tbody>
+    </table>
+
+    <table class="schema-table">
+      <caption>💳 transactions</caption>
+      <thead><tr><th>Column</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="pk">id</td><td>UUID</td><td>PRIMARY KEY</td><td>Unique transaction ID</td></tr>
+        <tr><td>customer_id</td><td>UUID</td><td class="fk">FK → customers.id</td><td>Customer involved</td></tr>
+        <tr><td>shop_id</td><td>UUID</td><td class="fk">FK → shops.id</td><td>Shop this transaction belongs to</td></tr>
+        <tr><td>type</td><td>ENUM</td><td>NOT NULL</td><td>'CREDIT', 'PAYMENT', 'ADVANCE', 'WRITEOFF', 'ADJUSTMENT', 'NOTE'</td></tr>
+        <tr><td>amount</td><td>DECIMAL(10,2)</td><td>NOT NULL</td><td>Transaction amount in INR</td></tr>
+        <tr><td>balance_before</td><td>DECIMAL(10,2)</td><td>NOT NULL</td><td>Outstanding balance before this transaction</td></tr>
+        <tr><td>balance_after</td><td>DECIMAL(10,2)</td><td>NOT NULL</td><td>Outstanding balance after this transaction</td></tr>
+        <tr><td>items</td><td>JSONB</td><td>NULLABLE</td><td>Array of { name, qty, price } for item-wise mode</td></tr>
+        <tr><td>note</td><td>TEXT</td><td>NULLABLE</td><td>Optional note or reason</td></tr>
+        <tr><td>recorded_by</td><td>UUID</td><td class="fk">FK → auth.users.id</td><td>Staff member who recorded this transaction</td></tr>
+        <tr><td>transaction_at</td><td>TIMESTAMPTZ</td><td>NOT NULL</td><td>Actual time of transaction (adjustable for offline entries)</td></tr>
+        <tr><td>is_disputed</td><td>BOOLEAN</td><td>DEFAULT FALSE</td><td>Dispute flag — shows ⚠️ in timeline</td></tr>
+        <tr><td>dispute_note</td><td>TEXT</td><td>NULLABLE</td><td>Reason for dispute</td></tr>
+      </tbody>
+    </table>
+
+    <table class="schema-table">
+      <caption>👨‍💼 staff &amp; 🔔 reminder_log</caption>
+      <thead><tr><th>Column</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="pk" colspan="4" style="color:var(--primary-light);background:rgba(108,58,232,0.08);">staff table</td></tr>
+        <tr><td>id</td><td>UUID</td><td>PRIMARY KEY</td><td>Staff member record</td></tr>
+        <tr><td>shop_id</td><td>UUID</td><td class="fk">FK → shops.id CASCADE</td><td>Which shop</td></tr>
+        <tr><td>user_id</td><td>UUID</td><td class="fk">FK → auth.users.id</td><td>Linked Supabase Auth user</td></tr>
+        <tr><td>role</td><td>ENUM</td><td>NOT NULL</td><td>'OWNER', 'MANAGER', 'STAFF'</td></tr>
+        <tr><td class="pk" colspan="4" style="color:var(--primary-light);background:rgba(108,58,232,0.08);">reminder_log table</td></tr>
+        <tr><td>customer_id</td><td>UUID</td><td class="fk">FK → customers.id</td><td>Who was reminded</td></tr>
+        <tr><td>amount_due</td><td>DECIMAL(10,2)</td><td></td><td>Amount due at time of reminder</td></tr>
+        <tr><td>message</td><td>TEXT</td><td></td><td>Exact message sent</td></tr>
+        <tr><td>sent_at</td><td>TIMESTAMPTZ</td><td>DEFAULT now()</td><td>When reminder was sent</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 05 - FILE STRUCTURE -->
+<section id="filestructure">
+  <div class="container">
+    <div class="section-label">05 · Structure</div>
+    <h2>Project <span>File Structure</span></h2>
+    <p class="section-desc">Organized by feature and responsibility. Every file has exactly one job.</p>
+    <div class="file-tree">
+<span class="dir">khataflow/</span>
+├── <span class="dir">app/</span>
+│   ├── <span class="dir">[locale]/</span>                    <span class="comment"># i18n routing (next-intl)</span>
+│   │   ├── <span class="dir">(auth)/</span>
+│   │   │   ├── <span class="dir">login/</span><span class="file">page.tsx</span>       <span class="comment"># Login — Email + Google OAuth</span>
+│   │   │   ├── <span class="dir">register/</span><span class="file">page.tsx</span>    <span class="comment"># Sign up + email verification</span>
+│   │   │   ├── <span class="dir">verify/</span><span class="file">page.tsx</span>      <span class="comment"># "Check your inbox" screen</span>
+│   │   │   └── <span class="dir">onboarding/</span><span class="file">page.tsx</span> <span class="comment"># First-time shop setup</span>
+│   │   ├── <span class="dir">(app)/</span>                   <span class="comment"># Protected app routes (auth guard)</span>
+│   │   │   ├── <span class="file">layout.tsx</span>           <span class="comment"># App shell — sidebar or bottom nav</span>
+│   │   │   ├── <span class="file">page.tsx</span>             <span class="comment"># Home Dashboard</span>
+│   │   │   ├── <span class="dir">customers/</span>
+│   │   │   │   ├── <span class="file">page.tsx</span>         <span class="comment"># Customer list + fuzzy search</span>
+│   │   │   │   └── <span class="dir">[id]/</span><span class="file">page.tsx</span>    <span class="comment"># Customer profile + timeline</span>
+│   │   │   ├── <span class="dir">reports/</span><span class="file">page.tsx</span>     <span class="comment"># Analytics + charts + export</span>
+│   │   │   └── <span class="dir">settings/</span><span class="file">page.tsx</span>   <span class="comment"># Shop profile, security, language</span>
+│   │   └── <span class="file">layout.tsx</span>               <span class="comment"># Root locale layout</span>
+│   ├── <span class="dir">api/</span>
+│   │   ├── <span class="dir">auth/callback/</span><span class="file">route.ts</span>  <span class="comment"># Google OAuth + email magic link</span>
+│   │   └── <span class="dir">export/pdf/</span><span class="file">route.ts</span>    <span class="comment"># PDF generation (Phase 2+)</span>
+│   └── <span class="file">globals.css</span>                  <span class="comment"># All CSS tokens + design system</span>
+│
+├── <span class="dir">components/</span>
+│   ├── <span class="dir">auth/</span>         <span class="file">LoginForm · RegisterForm · GoogleSignInButton</span>
+│   ├── <span class="dir">layout/</span>       <span class="file">Sidebar · BottomNav · Header</span>
+│   ├── <span class="dir">customers/</span>    <span class="file">CustomerSearch · CustomerCard · CustomerAvatar · CustomerBadge</span>
+│   ├── <span class="dir">modals/</span>       <span class="file">AddCustomer · AddCredit · RecordPayment · SendReminder · WriteOff · Dispute</span>
+│   ├── <span class="dir">transactions/</span> <span class="file">Timeline · Entry · Filters</span>
+│   ├── <span class="dir">charts/</span>       <span class="file">CreditPaymentBar · OutstandingTrend · TopDebtorsPie · RecoveryGauge</span>
+│   ├── <span class="dir">dashboard/</span>    <span class="file">SummaryCard · OverdueAlert · RecentFeed</span>
+│   └── <span class="dir">ui/</span>           <span class="file">Button · Input · Modal · Badge · Card · Spinner · Toast</span>
+│
+├── <span class="dir">lib/</span>
+│   ├── <span class="dir">supabase/</span>     <span class="file">client.ts · server.ts · middleware.ts</span>
+│   ├── <span class="dir">db/</span>           <span class="file">idb.ts (IndexedDB) · sync.ts (cloud sync) · schema.ts (TypeScript types)</span>
+│   ├── <span class="dir">store/</span>        <span class="file">customerStore · transactionStore · shopStore · uiStore (Zustand)</span>
+│   ├── <span class="file">finance.ts</span>                   <span class="comment"># Core business logic (credit/payment/wallet)</span>
+│   ├── <span class="file">fuzzy.ts</span>                     <span class="comment"># Fuse.js search wrapper</span>
+│   ├── <span class="file">whatsapp.ts</span>                  <span class="comment"># wa.me URL builder + message templates</span>
+│   ├── <span class="file">export.ts</span>                    <span class="comment"># CSV, JSON backup, print helpers</span>
+│   └── <span class="file">utils.ts</span>                     <span class="comment"># Misc helpers</span>
+│
+├── <span class="dir">messages/</span>         <span class="file">en.json · hi.json · mr.json · ta.json · te.json · bn.json · gu.json · pa.json</span>
+├── <span class="file">middleware.ts</span>                    <span class="comment"># Auth guard + locale redirect</span>
+├── <span class="file">i18n.ts</span>                          <span class="comment"># next-intl config</span>
+└── <span class="dir">supabase/</span>
+    ├── <span class="dir">migrations/</span>   <span class="file">001_initial_schema.sql · 002_rls_policies.sql</span>
+    └── <span class="file">seed.sql</span>                     <span class="comment"># Demo data for development</span>
+    </div>
+  </div>
+</section>
+
+<!-- 06 - PHASE 1 -->
+<section id="phase1">
+  <div class="container">
+    <div class="section-label">06 · Phase 1</div>
+    <h2>🟣 Phase 1 — <span>Foundation &amp; Auth</span></h2>
+    <p class="section-desc">Weeks 1–2. Goal: A running app with beautiful UI, Google + email auth, email verification, and a working shop setup flow. No data yet — just the skeleton and security foundation.</p>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-emoji">⚙️</span>
+        <div class="phase-title-group">
+          <span class="phase-tag purple">1.1 — Project Setup</span>
+          <h3>Scaffold &amp; Design System</h3>
+          <div class="phase-duration">Next.js 14 + TypeScript + all dependencies</div>
+        </div>
+      </div>
+      <div class="sub-section">
+        <div class="sub-section-title"><span>📦</span> Dependencies to Install</div>
+        <p style="font-size:13px;color:var(--text-muted);">
+          <span class="tech-badge">idb</span>
+          <span class="tech-badge">zustand</span>
+          <span class="tech-badge">@tanstack/react-query</span>
+          <span class="tech-badge">recharts</span>
+          <span class="tech-badge">react-hook-form</span>
+          <span class="tech-badge">zod</span>
+          <span class="tech-badge">fuse.js</span>
+          <span class="tech-badge">date-fns</span>
+          <span class="tech-badge">lucide-react</span>
+          <span class="tech-badge">next-intl</span>
+          <span class="tech-badge">@supabase/ssr</span>
+          <span class="tech-badge">@supabase/supabase-js</span>
+          <span class="tech-badge">qrcode.react</span>
+        </p>
+      </div>
+      <div class="sub-section">
+        <div class="sub-section-title"><span>🎨</span> globals.css — Complete Design Token System</div>
+        <pre><span class="kw">:root</span> {
+  <span class="cm">/* Brand Colors */</span>
+  <span class="acc">--primary</span>: <span class="str">#6C3AE8</span>;     <span class="acc">--primary-light</span>: <span class="str">#8B5CF6</span>;
+  <span class="acc">--accent</span>: <span class="str">#00C9A7</span>;      <span class="acc">--gold</span>: <span class="str">#F59E0B</span>;
+  <span class="acc">--coral</span>: <span class="str">#F43F5E</span>;      <span class="acc">--blue</span>: <span class="str">#3B82F6</span>;
+  <span class="cm">/* Backgrounds */</span>
+  <span class="acc">--bg</span>: <span class="str">#0F0A1E</span>;          <span class="acc">--bg-card</span>: <span class="str">#1A1030</span>;
+  <span class="cm">/* Text */</span>
+  <span class="acc">--text</span>: <span class="str">#F8F4FF</span>;        <span class="acc">--text-muted</span>: <span class="str">#A89BC2</span>;
+  <span class="cm">/* Gradient */</span>
+  <span class="acc">--gradient</span>: <span class="fn">linear-gradient</span>(<span class="str">135deg</span>, <span class="str">#6C3AE8</span>, <span class="str">#00C9A7</span>);
+}</pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-emoji">🔐</span>
+        <div class="phase-title-group">
+          <span class="phase-tag purple">1.2 — Supabase</span>
+          <h3>Backend Setup &amp; Database Migration</h3>
+          <div class="phase-duration">Tables, RLS policies, indexes, triggers</div>
+        </div>
+      </div>
+      <ul class="feature-list">
+        <li><strong>Migration 001:</strong> Create all tables (shops, customers, transactions, staff, reminder_log)</li>
+        <li><strong>Migration 002:</strong> Enable RLS on every table. Add policies: users can only SELECT/INSERT/UPDATE/DELETE rows where <code>shop_id</code> matches their shop</li>
+        <li><strong>Indexes:</strong> <code>customers(shop_id, name)</code>, <code>transactions(customer_id, transaction_at DESC)</code></li>
+        <li><strong>Trigger:</strong> Auto-update <code>updated_at</code> on every customers row change</li>
+        <li><strong>Supabase Auth:</strong> Enable Email provider + Google OAuth provider</li>
+        <li><strong>Storage buckets:</strong> Create <code>customer-photos</code> (public) and <code>pdf-exports</code> (private)</li>
+      </ul>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-emoji">🔑</span>
+        <div class="phase-title-group">
+          <span class="phase-tag purple">1.3 — Auth Pages</span>
+          <h3>Login · Register · Email Verification · Onboarding</h3>
+          <div class="phase-duration">4 screens with premium dark-mode UI</div>
+        </div>
+      </div>
+      <div class="card-grid card-grid-2" style="margin-top:16px;">
+        <div class="card">
+          <h3 style="font-size:15px;">📧 Login Page</h3>
+          <ul class="feature-list" style="margin-top:8px;">
+            <li>Email + Password with Zod validation</li>
+            <li>"Sign in with Google" OAuth button</li>
+            <li>"Forgot Password?" → Supabase reset email</li>
+            <li>Animated logo + gradient background</li>
+            <li>Error states with inline messages</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">✉️ Register Page</h3>
+          <ul class="feature-list" style="margin-top:8px;">
+            <li>Name, Email, Password, Confirm Password</li>
+            <li>Supabase sends verification email automatically</li>
+            <li>Redirects to "/verify" screen</li>
+            <li>"Resend email" with 60-second cooldown</li>
+            <li>Password strength indicator</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">🏪 Onboarding (Step 1)</h3>
+          <ul class="feature-list" style="margin-top:8px;">
+            <li>Shop name, address, contact phone</li>
+            <li>Choose default language</li>
+            <li>Choose currency (INR default)</li>
+            <li>Creates shops record in Supabase</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">🛡️ Auth Middleware</h3>
+          <ul class="feature-list" style="margin-top:8px;">
+            <li>Refreshes Supabase session on every request</li>
+            <li>Redirects unauthenticated users to /login</li>
+            <li>Redirects logged-in users away from auth pages</li>
+            <li>Handles locale prefix routing</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-emoji">🧭</span>
+        <div class="phase-title-group">
+          <span class="phase-tag purple">1.4 — App Shell</span>
+          <h3>Navigation &amp; Layout System</h3>
+          <div class="phase-duration">Desktop sidebar + mobile bottom nav</div>
+        </div>
+      </div>
+      <ul class="feature-list">
+        <li><strong>Desktop (≥768px):</strong> Fixed left sidebar — KhataFlow logo, shop name, nav links (Home/Customers/Reports/Settings), user avatar + logout at bottom</li>
+        <li><strong>Mobile (&lt;768px):</strong> Fixed bottom navigation bar with 4 icon+label tabs. Central FAB (+) for quick credit entry</li>
+        <li><strong>Active state:</strong> Gradient left indicator on desktop, gradient icon on mobile</li>
+        <li>Protected layout checks auth session server-side before rendering any page</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 07 - PHASE 2 -->
+<section id="phase2">
+  <div class="container">
+    <div class="section-label">07 · Phase 2</div>
+    <h2>🟢 Phase 2 — <span>Customer Management</span></h2>
+    <p class="section-desc">Weeks 2–3. Goal: Full customer CRUD, offline-first data layer, fuzzy search, and the complete transaction engine with advance wallet logic.</p>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-emoji">💾</span>
+        <div class="phase-title-group">
+          <span class="phase-tag green">2.1 — Data Layer</span>
+          <h3>Offline Cache + Sync Engine + Business Logic</h3>
+        </div>
+      </div>
+      <div class="sub-section">
+        <div class="sub-section-title"><span>📥</span> IndexedDB Offline Cache (lib/db/idb.ts)</div>
+        <ul class="feature-list">
+          <li>Local mirror of customers and transactions tables</li>
+          <li>All UI reads from IndexedDB first — instant render, no loading spinner</li>
+          <li>Write-through: writes go to IndexedDB immediately, then queued for Supabase</li>
+          <li>Pending queue stores failed syncs for retry</li>
+        </ul>
+      </div>
+      <div class="sub-section">
+        <div class="sub-section-title"><span>🔄</span> Sync Engine (lib/db/sync.ts)</div>
+        <ul class="feature-list">
+          <li>Runs on app load and on <code>window online</code> event</li>
+          <li>Fetches delta: records newer than last_synced_at from Supabase</li>
+          <li>Flushes pending local writes to Supabase</li>
+          <li>Conflict resolution: Last-Write-Wins with server timestamp</li>
+          <li>Shows sync status indicator in settings</li>
+        </ul>
+      </div>
+      <div class="sub-section">
+        <div class="sub-section-title"><span>💰</span> Advance Wallet Logic (lib/finance.ts)</div>
+        <div class="card-grid card-grid-2">
+          <div class="highlight-box teal">
+            <h4 style="color:var(--accent);">addCredit(₹500) — Customer has ₹200 advance</h4>
+            <pre style="background:transparent;border:none;padding:8px 0;font-size:12px;">advance_balance: ₹200 → ₹0
+outstanding_due: ₹0   → ₹300
+(₹200 deducted from wallet,
+ ₹300 added as outstanding)</pre>
+          </div>
+          <div class="highlight-box">
+            <h4 style="color:var(--primary-light);">recordPayment(₹700) — Outstanding ₹500</h4>
+            <pre style="background:transparent;border:none;padding:8px 0;font-size:12px;">outstanding_due:  ₹500 → ₹0
+advance_balance: ₹0   → ₹200
+(₹500 clears dues,
+ ₹200 goes to advance wallet)</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-emoji">👥</span>
+        <div class="phase-title-group">
+          <span class="phase-tag green">2.2 — Customer List</span>
+          <h3>Searchable Customer Directory</h3>
+        </div>
+      </div>
+      <ul class="feature-list">
+        <li><strong>Fuzzy Search:</strong> Fuse.js with name (60%), phone (30%), room_id (10%) weights. Threshold 0.4 catches typos. Partial phone number works.</li>
+        <li><strong>Sort:</strong> Name A–Z / Outstanding (high→low) / Last Transaction (recent first)</li>
+        <li><strong>Filter chips:</strong> All / Overdue (no payment in 30+ days) / Has Advance Balance / Inactive</li>
+        <li><strong>Customer cards:</strong> Color-coded left border (red=overdue, green=advance, grey=zero), photo/initials, name, phone, balance badge, "3 days ago" relative time</li>
+        <li><strong>Mobile gestures:</strong> Swipe left → Add Credit, Swipe right → Send Reminder</li>
+        <li><strong>FAB (+):</strong> Opens Add Customer modal</li>
+      </ul>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-emoji">👤</span>
+        <div class="phase-title-group">
+          <span class="phase-tag green">2.3 — Customer Profile</span>
+          <h3>Full Customer Dashboard + Transaction Timeline</h3>
+        </div>
+      </div>
+      <div class="card-grid card-grid-2" style="margin-top:16px;">
+        <div>
+          <h4>Profile Header</h4>
+          <ul class="feature-list">
+            <li>Customer photo (or large initials avatar)</li>
+            <li>Outstanding due — large, red if positive</li>
+            <li>Advance wallet badge — green if &gt;0</li>
+            <li>Credit limit progress bar</li>
+            <li>Quick action buttons row</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Transaction Timeline</h4>
+          <ul class="feature-list">
+            <li>🔴 Credit (udhar) · 🟢 Payment · 🔵 Adjustment · 🟡 Note · ⚫ Write-off</li>
+            <li>Most recent first, paginated 50/page</li>
+            <li>Expand entry: who recorded it, balance before/after</li>
+            <li>Dispute button on each entry</li>
+            <li>Filter by date range / type / amount</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-emoji">⚡</span>
+        <div class="phase-title-group">
+          <span class="phase-tag green">2.4 — Transaction Modals</span>
+          <h3>Add Credit · Record Payment · Send Reminder</h3>
+        </div>
+      </div>
+      <div class="card-grid card-grid-3" style="margin-top:16px;">
+        <div class="card">
+          <h3 style="font-size:15px;">➕ Add Credit</h3>
+          <ul class="feature-list" style="margin-top:8px;">
+            <li><strong>Quick Mode:</strong> Large numpad, one-tap save in &lt;5 sec</li>
+            <li><strong>Item Mode:</strong> Name/Qty/Price rows, auto-total</li>
+            <li>Credit limit warning</li>
+            <li>Advance wallet deduction notice</li>
+            <li>Optional note field</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">💰 Record Payment</h3>
+          <ul class="feature-list" style="margin-top:8px;">
+            <li>Shows outstanding due prominently</li>
+            <li>Live preview of new balance</li>
+            <li>Overpayment → advance wallet notice</li>
+            <li>Optional note</li>
+            <li>Animated confirmation</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">💬 Send Reminder (WhatsApp)</h3>
+          <ul class="feature-list" style="margin-top:8px;">
+            <li>Pre-filled <code>wa.me</code> deep link</li>
+            <li>3 template options (polite/friendly/urgent)</li>
+            <li>Templates in chosen language</li>
+            <li>User can edit before sending</li>
+            <li>Logs to reminder_log on confirm</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 - PHASE 3 -->
+<section id="phase3">
+  <div class="container">
+    <div class="section-label">08 · Phase 3</div>
+    <h2>🟡 Phase 3 — <span>Reports &amp; Analytics</span></h2>
+    <p class="section-desc">Week 4. Goal: Full business intelligence dashboard with interactive charts, date filtering, and multiple export formats.</p>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-emoji">📊</span>
+        <div class="phase-title-group">
+          <span class="phase-tag gold">3.1 — Reports Page</span>
+          <h3>Analytics Dashboard</h3>
+        </div>
+      </div>
+
+      <div class="card-grid card-grid-4" style="margin-bottom:24px;">
+        <div class="metric-card"><div class="metric-value">₹X</div><div class="metric-label">Total Outstanding</div></div>
+        <div class="metric-card"><div class="metric-value">₹Y</div><div class="metric-label">Collections (Period)</div></div>
+        <div class="metric-card"><div class="metric-value">₹Z</div><div class="metric-label">Credit Given</div></div>
+        <div class="metric-card"><div class="metric-value">72%</div><div class="metric-label">Recovery Rate</div></div>
+      </div>
+
+      <div class="card-grid card-grid-2">
+        <div class="card">
+          <h3 style="font-size:15px;">📊 Credit vs Payment Bar Chart</h3>
+          <p>Grouped bar chart (Recharts). Credit (red) vs Payments (green) per day/week. Tooltip shows exact amounts. Dark theme styled.</p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">📈 Outstanding Trend Line</h3>
+          <p>Line chart showing total outstanding over time. Gradient fill under the line. Trend direction indicator (↑↓).</p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">🥧 Top Debtors Donut Chart</h3>
+          <p>Pie/donut chart of top 5 debtors as % of total outstanding. Interactive legend with names and amounts.</p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">🎯 Recovery Rate Gauge</h3>
+          <p>Semi-circular gauge. Green (&gt;70%), Yellow (40–70%), Red (&lt;40%). Single number, immediate visual impact.</p>
+        </div>
+      </div>
+
+      <div class="highlight-box gold" style="margin-top:20px;">
+        <h4 style="color:var(--gold);">📤 Export Options</h4>
+        <ul class="feature-list" style="margin-top:8px;">
+          <li><strong>CSV Download:</strong> All transactions in date range — Date, Customer, Type, Amount, Balance Before, Balance After, Note</li>
+          <li><strong>JSON Backup:</strong> Full shop data backup as <code>khataflow_backup_{date}.json</code></li>
+          <li><strong>Print/PDF Statement:</strong> Opens browser print dialog with CSS-optimized print layout — shop header, customer table, running balance, generation date</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 - PHASE 4 -->
+<section id="phase4">
+  <div class="container">
+    <div class="section-label">09 · Phase 4</div>
+    <h2>🔵 Phase 4 — <span>Settings, Security &amp; i18n</span></h2>
+    <p class="section-desc">Week 5. Goal: Complete settings system, PIN security, full multi-language support, and backup/restore functionality.</p>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-emoji">⚙️</span>
+        <div class="phase-title-group">
+          <span class="phase-tag blue">4.1 — Settings Page</span>
+          <h3>Full Settings System</h3>
+        </div>
+      </div>
+      <div class="card-grid card-grid-2" style="margin-top:16px;">
+        <div class="card">
+          <h3 style="font-size:15px;">🏪 Shop Profile</h3>
+          <ul class="feature-list" style="margin-top:8px;">
+            <li>Edit shop name, address, phone, GST number</li>
+            <li>Upload shop logo → Supabase Storage</li>
+            <li>All changes saved to shops table</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">🔐 Security</h3>
+          <ul class="feature-list" style="margin-top:8px;">
+            <li>Enable/disable 4-digit PIN lock</li>
+            <li>Auto-lock timer (30s / 1min / 5min)</li>
+            <li>Change Password → Supabase reset email</li>
+            <li>Connected accounts (Google OAuth)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">🌍 Language &amp; Appearance</h3>
+          <ul class="feature-list" style="margin-top:8px;">
+            <li>Language dropdown → all 8 locales</li>
+            <li>Preview sample string in chosen language</li>
+            <li>Dark mode toggle (default: Dark)</li>
+            <li>Color accent selector (Purple/Teal/Blue)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">💾 Data &amp; Backup</h3>
+          <ul class="feature-list" style="margin-top:8px;">
+            <li>"Download Full Backup" → exports JSON</li>
+            <li>"Import Backup" → restores without duplicates</li>
+            <li>Last sync time indicator</li>
+            <li>"Sync Now" manual trigger</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-emoji">🌍</span>
+        <div class="phase-title-group">
+          <span class="phase-tag blue">4.2 — i18n</span>
+          <h3>Multi-Language Implementation</h3>
+        </div>
+      </div>
+      <ul class="feature-list">
+        <li><strong>next-intl setup:</strong> All 8 locale codes registered, URL-based routing (<code>/hi/customers</code>)</li>
+        <li><strong>messages/en.json + messages/hi.json:</strong> All UI strings translated for Phase 1 launch</li>
+        <li><strong>WhatsApp templates:</strong> Polite, Friendly, Urgent — in each installed language</li>
+        <li><strong>Language persistence:</strong> User choice saved to <code>shops.settings.language</code>, loaded on next login</li>
+        <li><strong>RTL support:</strong> HTML dir="rtl" for languages that require it (future consideration)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 10 - PHASE 5 -->
+<section id="phase5">
+  <div class="container">
+    <div class="section-label">10 · Phase 5</div>
+    <h2>⚫ Phase 5 — <span>Power Features &amp; Polish</span></h2>
+    <p class="section-desc">Week 6. Goal: QR cards, dispute workflow, write-offs, family accounts, one-tap repeat, remaining 6 languages, and final UI polish.</p>
+
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <span class="card-icon">📱</span>
+        <h3>QR Customer Cards</h3>
+        <p>Generate QR code per customer (encodes their profile URL). Printable card with shop name + QR. Scan from any device to open profile instantly.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">✍️</span>
+        <h3>Write-Off (Bad Debt)</h3>
+        <p>Write off uncollectible amounts with a mandatory reason. Permanently logged as WRITEOFF in timeline. Reduces outstanding balance.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">⚠️</span>
+        <h3>Dispute Workflow</h3>
+        <p>Flag any transaction as disputed. Requires a note. Shows ⚠️ badge in timeline. Owner can resolve and close disputes.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">👨‍👩‍👧</span>
+        <h3>Family Accounts</h3>
+        <p>Link customers under one household. Family view shows combined outstanding with per-member breakdown. Useful for hostel/colony shops.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔁</span>
+        <h3>One-Tap Repeat</h3>
+        <p>"Repeat Last" button in Add Credit modal. Instantly fills previous transaction's amount and items. Perfect for daily milk/recurring orders.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🌐</span>
+        <h3>6 More Languages</h3>
+        <p>Marathi, Tamil, Telugu, Bengali, Gujarati, Punjabi — all translation JSON files added with community review.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 - DEPLOYMENT -->
+<section id="deployment">
+  <div class="container">
+    <div class="section-label">11 · Deployment</div>
+    <h2>Deployment <span>Plan</span></h2>
+    <p class="section-desc">Zero-server-management stack. Supabase handles backend, Vercel handles frontend — both scale automatically.</p>
+
+    <div class="card-grid card-grid-2">
+      <div class="phase-card" style="margin-bottom:0;">
+        <h3>🗄️ Supabase (Backend)</h3>
+        <ul class="checklist" style="margin-top:16px;">
+          <li>Create Supabase project (start on free tier)</li>
+          <li>Run migration SQL files in order</li>
+          <li>Enable Email Auth + Google OAuth provider</li>
+          <li>Configure email templates (verification, reset)</li>
+          <li>Set up Storage buckets (customer-photos, pdf-exports)</li>
+          <li>Enable Row Level Security on all tables</li>
+          <li>Copy SUPABASE_URL and ANON_KEY</li>
+        </ul>
+      </div>
+      <div class="phase-card" style="margin-bottom:0;">
+        <h3>🚀 Vercel (Frontend)</h3>
+        <ul class="checklist" style="margin-top:16px;">
+          <li>Connect GitHub repository to Vercel</li>
+          <li>Set environment variables: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, APP_URL</li>
+          <li>Every git push to main → auto-deploys</li>
+          <li>Every pull request → preview deployment</li>
+          <li>Enable Vercel Analytics for performance monitoring</li>
+          <li>Configure custom domain (optional)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight-box" style="margin-top:28px;">
+      <h4>🔒 Environment Variables</h4>
+      <pre style="margin:12px 0 0;">NEXT_PUBLIC_SUPABASE_URL=<span class="str">https://xxx.supabase.co</span>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<span class="str">eyJxxx...</span>
+SUPABASE_SERVICE_ROLE_KEY=<span class="str">eyJxxx...</span>     <span class="cm"># Server-only, never expose to client</span>
+NEXT_PUBLIC_APP_URL=<span class="str">https://khataflow.vercel.app</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- 12 - VERIFICATION -->
+<section id="verification">
+  <div class="container">
+    <div class="section-label">12 · Testing</div>
+    <h2>Verification <span>Plan</span></h2>
+    <p class="section-desc">Each phase has specific acceptance criteria that must pass before the next phase begins.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Phase</th><th>Test Scenario</th><th>Expected Result</th><th>Priority</th></tr></thead>
+      <tbody>
+        <tr><td>Phase 1</td><td>Register with email</td><td>Verification email received and clickable</td><td><span class="p-critical">Critical</span></td></tr>
+        <tr><td>Phase 1</td><td>Sign in with Google</td><td>OAuth redirect → onboarding → dashboard</td><td><span class="p-critical">Critical</span></td></tr>
+        <tr><td>Phase 1</td><td>Access protected route logged out</td><td>Redirected to /login</td><td><span class="p-critical">Critical</span></td></tr>
+        <tr><td>Phase 2</td><td>Add customer "Ramesh Kumar"</td><td>Appears in list, synced to Supabase DB</td><td><span class="p-critical">Critical</span></td></tr>
+        <tr><td>Phase 2</td><td>Search "Ramsh" (typo)</td><td>Finds "Ramesh Kumar" via fuzzy match</td><td><span class="p-high">High</span></td></tr>
+        <tr><td>Phase 2</td><td>Add credit ₹500, advance wallet ₹200</td><td>New balance = ₹300, advance = ₹0</td><td><span class="p-critical">Critical</span></td></tr>
+        <tr><td>Phase 2</td><td>Record payment ₹700 (outstanding ₹500)</td><td>Outstanding = ₹0, advance wallet = ₹200</td><td><span class="p-critical">Critical</span></td></tr>
+        <tr><td>Phase 2</td><td>Send Reminder (WhatsApp)</td><td>Correct wa.me URL opens with pre-filled message</td><td><span class="p-high">High</span></td></tr>
+        <tr><td>Phase 2</td><td>Refresh browser</td><td>All data persists (IndexedDB)</td><td><span class="p-critical">Critical</span></td></tr>
+        <tr><td>Phase 2</td><td>Go offline, add credit</td><td>Data saved locally, syncs when back online</td><td><span class="p-high">High</span></td></tr>
+        <tr><td>Phase 3</td><td>Reports page — date range filter</td><td>Charts update correctly for selected period</td><td><span class="p-high">High</span></td></tr>
+        <tr><td>Phase 3</td><td>CSV export</td><td>Downloads valid CSV with correct columns</td><td><span class="p-med">Medium</span></td></tr>
+        <tr><td>Phase 3</td><td>Print statement</td><td>Opens print dialog with formatted layout</td><td><span class="p-med">Medium</span></td></tr>
+        <tr><td>Phase 4</td><td>Switch language to Hindi</td><td>All UI strings update immediately</td><td><span class="p-high">High</span></td></tr>
+        <tr><td>Phase 4</td><td>Enable PIN lock, reload app</td><td>PIN entry required before accessing app</td><td><span class="p-high">High</span></td></tr>
+        <tr><td>Phase 4</td><td>Download + re-import backup</td><td>All data restored, no duplicates</td><td><span class="p-med">Medium</span></td></tr>
+        <tr><td>Phase 5</td><td>Write-off ₹200 (outstanding ₹500)</td><td>Outstanding = ₹300, WRITEOFF entry in timeline</td><td><span class="p-high">High</span></td></tr>
+        <tr><td>Phase 5</td><td>QR code generation</td><td>QR encodes customer URL, scannable</td><td><span class="p-med">Medium</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="divider"></div>
+
+    <h3>Build Validation Commands</h3>
+    <pre><span class="cm"># Run before each phase is marked complete</span>
+<span class="fn">npm</span> run lint          <span class="cm"># Zero ESLint errors</span>
+<span class="fn">npm</span> run type-check    <span class="cm"># Zero TypeScript errors</span>
+<span class="fn">npm</span> run build         <span class="cm"># Production build succeeds</span></pre>
+  </div>
+</section>
+
+<!-- TIMELINE SUMMARY -->
+<section>
+  <div class="container">
+    <div class="section-label">Summary</div>
+    <h2>Timeline <span>Summary</span></h2>
+    <p class="section-desc">Six weeks. Five phases. One production-ready app.</p>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot">1</div>
+        <div class="timeline-content">
+          <h4>🟣 Phase 1 — Foundation &amp; Auth (Week 1–2)</h4>
+          <p style="font-size:13px;margin:0;">Project scaffold · Design system · Supabase backend · Email + Google auth with verification · Onboarding flow · App shell navigation</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2</div>
+        <div class="timeline-content">
+          <h4>🟢 Phase 2 — Customer Management (Week 2–3)</h4>
+          <p style="font-size:13px;margin:0;">IndexedDB offline cache · Sync engine · Fuzzy search · Customer CRUD · Add Credit modal · Record Payment · Advance wallet logic · WhatsApp reminder · Transaction timeline</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">3</div>
+        <div class="timeline-content">
+          <h4>🟡 Phase 3 — Reports &amp; Analytics (Week 4)</h4>
+          <p style="font-size:13px;margin:0;">Date range picker · 4 summary metrics · Bar/line/pie/gauge charts · Top debtors list · CSV export · JSON backup · Print statement</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">4</div>
+        <div class="timeline-content">
+          <h4>🔵 Phase 4 — Settings, Security &amp; i18n (Week 5)</h4>
+          <p style="font-size:13px;margin:0;">Shop profile edit · PIN lock · Change password · 8-language support (English + Hindi launch) · Dark mode · Backup &amp; restore · Sync status</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">5</div>
+        <div class="timeline-content">
+          <h4>⚫ Phase 5 — Power Features &amp; Polish (Week 6)</h4>
+          <p style="font-size:13px;margin:0;">QR customer cards · Write-off system · Dispute workflow · Family accounts · One-tap repeat · 6 more languages · Final UI polish &amp; bug fixes</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="blockquote" style="margin-top:40px;">
+      <p>"Speed, Simplicity, and Reliability — A transaction in under five seconds. Every feature exists to serve that promise."</p>
+      <cite>— KhataFlow Core Vision Statement</cite>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-logo">📒 KhataFlow</div>
+    <p class="footer-text" style="margin-bottom:6px;">Web App Implementation Plan v2.0</p>
+    <p class="footer-text">Next.js 14 · Supabase · Vercel · Prepared July 2026 · Confidential</p>
+    <div style="width:100px;height:2px;background:var(--gradient);margin:20px auto;border-radius:2px;"></div>
+    <p class="footer-text" style="font-size:12px;">5 Phases · 6 Weeks · 8 Languages · ∞ Reliability</p>
+  </div>
+</footer>
+
+<script>
+  // Smooth scroll for TOC links
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // Scroll-reveal animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.card, .phase-card, .metric-card, .timeline-content, .lang-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(18px)';
+    el.style.transition = 'all 0.5s ease';
+    observer.observe(el);
+  });
+</script>
+
+</body>
+</html>

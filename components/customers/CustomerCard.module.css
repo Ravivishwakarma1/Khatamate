@@ -1,0 +1,121 @@
+.card {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.leftInfo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.avatarOverdue {
+  background: var(--gradient-coral);
+}
+
+.avatarAdvance {
+  background: var(--gradient-gold);
+}
+
+.avatarNormal {
+  background: var(--gradient-primary);
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.name {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.roomBadge {
+  font-size: var(--text-xs);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.balanceBox {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.balanceVal {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+
+.actionGroup {
+  display: flex;
+  gap: 6px;
+}
+
+.actionBtnCoral {
+  padding: 8px 12px;
+  color: var(--coral);
+}
+
+.actionBtnAccent {
+  padding: 8px 12px;
+  color: var(--accent);
+}
+
+.actionBtnWhatsApp {
+  padding: 8px 12px;
+  color: #25D366;
+}

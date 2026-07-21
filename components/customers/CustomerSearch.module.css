@@ -1,0 +1,42 @@
+.wrap {
+  position: relative;
+  width: 100%;
+}
+
+.input {
+  padding-left: 44px !important;
+  font-size: var(--text-sm) !important;
+}
+
+.inputWithClear {
+  padding-right: 40px !important;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.clearBtn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s ease;
+}
+
+.clearBtn:hover {
+  color: var(--text);
+}
