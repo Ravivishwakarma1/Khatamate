@@ -18,7 +18,16 @@ export default function CustomerQrModal({
   onClose,
 }: CustomerQrModalProps) {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://khatamate.vercel.app';
-  const qrValue = `${origin}/en/passbook/${customer.id}`;
+  const queryParams = new URLSearchParams();
+  if (customer.name) queryParams.set('name', customer.name);
+  if (customer.outstanding_due !== undefined) queryParams.set('due', customer.outstanding_due.toString());
+  if (customer.advance_balance !== undefined) queryParams.set('adv', customer.advance_balance.toString());
+  if (customer.phone) queryParams.set('phone', customer.phone);
+  if (customer.room_id) queryParams.set('room', customer.room_id);
+  if (shopName) queryParams.set('shop', shopName);
+
+  const qrValue = `${origin}/en/passbook/${customer.id}?${queryParams.toString()}`;
+
 
   const handlePrint = () => {
     window.print();

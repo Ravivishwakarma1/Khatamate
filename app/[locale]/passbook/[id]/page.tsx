@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import { Customer, Transaction, Shop } from '@/lib/db/schema';
 import { getLocalCustomerById, getLocalTransactionsByCustomer, getAllLocalShops } from '@/lib/db/idb';
 import { getCustomerFromFirestore, getTransactionsFromFirestore, getShopFromFirestore } from '@/lib/firebase/firestoreSync';
@@ -9,8 +9,10 @@ import BillSlipModal from '@/components/modals/BillSlipModal';
 import { BookOpen, Calendar, Printer, Receipt, ShieldCheck, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import styles from '../passbook.module.css';
 
-export default function PublicCustomerPassbookPage() {
+function PassbookContent() {
+
   const params = useParams();
+  const searchParams = useSearchParams();
   const customerId = params?.id as string;
 
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -29,15 +31,35 @@ export default function PublicCustomerPassbookPage() {
         // 1. Try local IndexedDB first
         let custData: Customer | null | undefined = await getLocalCustomerById(customerId);
 
-        // 2. If not found locally (e.g. customer scanned QR on their phone), fetch from Cloud Firestore
+        // 2. If not found locally, fetch from Cloud Firestore
         if (!custData) {
           custData = await getCustomerFromFirestore(customerId);
+        }
+
+        // 3. Fallback: Parse customer parameters encoded directly in the QR code URL
+        if (!custData && searchParams) {
+          const nameParam = searchParams.get('name');
+          if (nameParam) {
+            custData = {
+              id: customerId,
+              shop_id: 'shop_main',
+              name: nameParam,
+              phone: searchParams.get('phone') || undefined,
+              room_id: searchParams.get('room') || undefined,
+              outstanding_due: parseFloat(searchParams.get('due') || '0'),
+              advance_balance: parseFloat(searchParams.get('adv') || '0'),
+              credit_limit: 0,
+              is_active: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+          }
         }
 
         setCustomer(custData || null);
 
         if (custData) {
-          // 3. Fetch transactions (Local IndexedDB first, then Cloud Firestore)
+          // 4. Fetch transactions (Local IndexedDB first, then Cloud Firestore)
           let txList = await getLocalTransactionsByCustomer(customerId);
           if (!txList || txList.length === 0) {
             txList = await getTransactionsFromFirestore(customerId);
@@ -47,18 +69,20 @@ export default function PublicCustomerPassbookPage() {
             txList.sort((a: Transaction, b: Transaction) => new Date(b.transaction_at).getTime() - new Date(a.transaction_at).getTime())
           );
 
-          // 4. Fetch Shop info
+          // 5. Fetch Shop info
           const shopsList = await getAllLocalShops();
           let shopData: Shop | null | undefined = shopsList[0];
           if (!shopData && custData.shop_id) {
             shopData = await getShopFromFirestore(custData.shop_id);
           }
 
+          const shopNameParam = searchParams?.get('shop');
+
           setShop(
             shopData || {
               id: custData.shop_id || 'demo-shop',
               owner_id: 'owner-1',
-              name: 'KhataMate Digital Ledger Store',
+              name: shopNameParam || 'KhataMate Digital Ledger Store',
               currency: 'INR',
               plan: 'PRO',
               settings: { language: 'en', dark_mode: true, pin_enabled: false },
@@ -66,7 +90,6 @@ export default function PublicCustomerPassbookPage() {
               updated_at: new Date().toISOString(),
             }
           );
-
         }
       } catch (err) {
         console.error('Passbook loading error:', err);
@@ -75,10 +98,8 @@ export default function PublicCustomerPassbookPage() {
       }
     }
 
-
-
     loadPassbookData();
-  }, [customerId]);
+  }, [customerId, searchParams]);
 
   // Extract unique months (Formatted e.g. "July 2026")
   const availableMonths = useMemo(() => {
@@ -145,17 +166,15 @@ export default function PublicCustomerPassbookPage() {
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(108, 58, 232, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--accent)' }}>
             <BookOpen size={32} />
           </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Customer Ledger Not Synced</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Customer Ledger Not Found</h2>
           <p style={{ color: 'var(--text-muted)', marginTop: '12px', fontSize: '0.9rem', lineHeight: 1.6 }}>
-            This customer passbook has not been synced to Cloud Firestore yet.
+            The requested customer account ledger could not be located.
           </p>
-          <div style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', padding: '16px', borderRadius: '12px', marginTop: '20px', textAlign: 'left', fontSize: '0.82rem', color: 'var(--text-dim)', lineHeight: 1.5 }}>
-            💡 <strong>For Shopkeeper:</strong> Ensure your Vercel project has Firebase Environment Variables added, and open KhataMate while online to automatically sync customer passbooks to the cloud so customers can view them on their phones.
-          </div>
         </div>
       </div>
     );
   }
+
 
 
   const monthEntries = Array.from(groupedByMonth.entries());
@@ -347,3 +366,20 @@ export default function PublicCustomerPassbookPage() {
     </div>
   );
 }
+
+export default function PublicCustomerPassbookPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className={styles.pageWrapper}>
+          <div className={styles.container} style={{ textAlign: 'center', paddingTop: '80px' }}>
+            <p style={{ color: 'var(--text-muted)' }}>Loading Digital Passbook Statement...</p>
+          </div>
+        </div>
+      }
+    >
+      <PassbookContent />
+    </Suspense>
+  );
+}
+
