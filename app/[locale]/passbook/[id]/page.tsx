@@ -61,10 +61,12 @@ export default function PublicCustomerPassbookPage() {
               name: 'KhataMate Digital Ledger Store',
               currency: 'INR',
               plan: 'PRO',
+              settings: { language: 'en', dark_mode: true, pin_enabled: false },
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             }
           );
+
         }
       } catch (err) {
         console.error('Passbook loading error:', err);

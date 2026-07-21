@@ -84,7 +84,10 @@ export async function getAllLocalShops(): Promise<Shop[]> {
   const db = await getDB();
   if (!db) return [];
   return db.getAll('shops');
+}
+
 export async function saveLocalShop(shop: Shop): Promise<void> {
+
 
   const db = await getDB();
   if (!db) return;
