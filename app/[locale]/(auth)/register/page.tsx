@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { signUpWithEmail } from '@/lib/firebase/auth';
 import { formatAuthError } from '@/lib/firebase/errorHelper';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 
@@ -18,6 +19,7 @@ export default function RegisterPage() {
   const params = useParams();
   const locale = (params?.locale as string) || 'en';
   const toast = useToast();
+  const { user } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -26,7 +28,14 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  useEffect(() => {
+    if (user) {
+      router.replace(`/${locale}/dashboard`);
+    }
+  }, [user, router, locale]);
+
   const handleRegister = async (e: React.FormEvent) => {
+
 
     e.preventDefault();
     setErrorMsg('');

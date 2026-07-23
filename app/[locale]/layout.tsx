@@ -5,6 +5,7 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { locales } from '@/i18n';
 import { Inter, Outfit, JetBrains_Mono } from 'next/font/google';
+import { AuthProvider } from '@/components/auth/AuthProvider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -65,9 +66,12 @@ export default async function RootLayout({
 
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>
   );
 }
+

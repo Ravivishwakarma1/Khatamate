@@ -34,8 +34,10 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // 3. Refresh user session
-  const { data: { user } } = await supabase.auth.getUser();
+  // 3. Refresh user session (Supabase or custom session cookie)
+  const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+  const sessionCookie = request.cookies.get('khataflow_session')?.value;
+  const isAuthenticated = Boolean(supabaseUser || sessionCookie);
 
   const pathname = request.nextUrl.pathname;
 
@@ -55,20 +57,24 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = cleanPathname === '/login' || cleanPathname === '/register' || cleanPathname === '/verify';
   const isOnboardingRoute = cleanPathname === '/onboarding';
   const isLandingRoute = cleanPathname === '/landing' || cleanPathname === '/';
-  const isPublicRoute = isAuthRoute || isOnboardingRoute || cleanPathname === '/landing' || cleanPathname.startsWith('/api/');
+  const isProtectedAppRoute = cleanPathname === '/dashboard' ||
+    cleanPathname.startsWith('/customers') ||
+    cleanPathname.startsWith('/reports') ||
+    cleanPathname.startsWith('/settings') ||
+    cleanPathname.startsWith('/passbook');
 
-  // If real Supabase keys are configured, enforce route protection
-  const hasRealSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL);
-
-  if (hasRealSupabase) {
-    if (!user && !isPublicRoute) {
-      const landingUrl = new URL(`/${currentLocale}/landing`, request.url);
-      return NextResponse.redirect(landingUrl);
-    }
-
-    if (user && isAuthRoute) {
-      const dashboardUrl = new URL(`/${currentLocale}`, request.url);
+  // Enforce session persistence & route protection
+  if (isAuthenticated) {
+    // Authenticated users visiting auth routes or root landing page are redirected to dashboard
+    if (isAuthRoute || isLandingRoute) {
+      const dashboardUrl = new URL(`/${currentLocale}/dashboard`, request.url);
       return NextResponse.redirect(dashboardUrl);
+    }
+  } else {
+    // Unauthenticated users visiting protected app routes are redirected to login
+    if (isProtectedAppRoute) {
+      const loginUrl = new URL(`/${currentLocale}/login`, request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
@@ -78,3 +84,4 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)']
 };
+
