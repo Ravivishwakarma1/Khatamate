@@ -60,8 +60,7 @@ export async function middleware(request: NextRequest) {
   const isProtectedAppRoute = cleanPathname === '/dashboard' ||
     cleanPathname.startsWith('/customers') ||
     cleanPathname.startsWith('/reports') ||
-    cleanPathname.startsWith('/settings') ||
-    cleanPathname.startsWith('/passbook');
+    cleanPathname.startsWith('/settings');
 
   // Enforce session persistence & route protection
   if (isAuthenticated) {

@@ -21,23 +21,29 @@ export default function GoogleSignInButton() {
 
       if (isPlaceholder) {
         // Fallback for local development without active Supabase credentials
+        const emailInput = prompt('Enter your Google email address to sign in:', 'owner@khatamate.com');
+        if (!emailInput || !emailInput.trim()) {
+          setLoading(false);
+          return;
+        }
         const demoUser = {
-          uid: 'demo_google_user',
-          email: 'shopkeeper@khatamate.com',
-          displayName: 'Kirana Owner (Demo)',
+          uid: `google_${Date.now()}`,
+          email: emailInput.trim(),
+          displayName: emailInput.trim().split('@')[0],
         };
         localStorage.setItem('khataflow_user', JSON.stringify(demoUser));
         document.cookie = 'khataflow_session=true; path=/; max-age=31536000; SameSite=Lax;';
-        toast.success('Signed in as Kirana Owner (Local Offline Mode)');
+        toast.success(`Signed in as ${demoUser.displayName}`);
         window.location.href = `/${locale}/dashboard`;
         return;
       }
 
       const supabase = createClient();
+      const redirectTo = `${window.location.origin}/api/auth/callback?next=/${locale}/dashboard`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/${locale}/dashboard`,
+          redirectTo,
         },
       });
       if (error) throw error;
