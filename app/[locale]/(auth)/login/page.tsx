@@ -125,8 +125,8 @@ export default function LoginPage() {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!otpCode || otpCode.length < 6) {
-      setErrorMsg('Please enter the 6-digit OTP code.');
+    if (!otpCode || otpCode.trim().length < 6) {
+      setErrorMsg('Please enter the OTP verification code.');
       return;
     }
 
@@ -326,18 +326,18 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={handleVerifyOtp}>
               <div style={{ textAlign: 'center', marginBottom: '16px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                Enter the 6-digit OTP code sent to <strong style={{ color: 'var(--text)' }}>{email}</strong>
+                Enter the OTP code sent to <strong style={{ color: 'var(--text)' }}>{email}</strong>
               </div>
 
               <div className="input-group">
                 <input
                   type="text"
-                  maxLength={6}
+                  maxLength={8}
                   required
                   autoFocus
                   className="input-field"
-                  placeholder="123456"
-                  style={{ fontSize: '1.5rem', letterSpacing: '0.4em', textAlign: 'center', fontWeight: 800 }}
+                  placeholder="80199565"
+                  style={{ fontSize: '1.4rem', letterSpacing: '0.3em', textAlign: 'center', fontWeight: 800 }}
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value)}
                 />

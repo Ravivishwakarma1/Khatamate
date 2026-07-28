@@ -23,8 +23,8 @@ export default function VerifyPage() {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!otpCode || otpCode.length < 6) {
-      setErrorMsg('Please enter the 6-digit verification code.');
+    if (!otpCode || otpCode.trim().length < 6) {
+      setErrorMsg('Please enter the verification code.');
       return;
     }
 
@@ -109,15 +109,15 @@ export default function VerifyPage() {
 
       <form onSubmit={handleVerifyOtp} style={{ marginTop: '16px' }}>
         <div className="input-group">
-          <label className="input-label">Enter 6-Digit Verification Code</label>
+          <label className="input-label">Enter Verification Code</label>
           <input
             type="text"
-            maxLength={6}
+            maxLength={8}
             required
             autoFocus
             className="input-field"
-            placeholder="123456"
-            style={{ fontSize: '1.5rem', letterSpacing: '0.4em', textAlign: 'center', fontWeight: 800 }}
+            placeholder="80199565"
+            style={{ fontSize: '1.4rem', letterSpacing: '0.3em', textAlign: 'center', fontWeight: 800 }}
             value={otpCode}
             onChange={(e) => setOtpCode(e.target.value)}
           />
