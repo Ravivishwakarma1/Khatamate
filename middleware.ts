@@ -11,6 +11,13 @@ const intlMiddleware = createMiddleware({
 });
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // Skip intl middleware for API routes
+  if (pathname.startsWith('/api') || pathname.includes('/api/')) {
+    return NextResponse.next();
+  }
+
   // 1. Run next-intl middleware first to resolve locale routing
   const response = intlMiddleware(request);
 
@@ -81,6 +88,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)']
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)']
 };
 
