@@ -105,7 +105,8 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setErrorMsg(error.message || 'Failed to send OTP code.');
+        const msg = error.message && error.message !== '{}' ? error.message : 'Failed to send OTP code. Please check your SMTP settings or try again.';
+        setErrorMsg(msg);
         setLoading(false);
         return;
       }
@@ -113,7 +114,8 @@ export default function LoginPage() {
       toast.success(`6-digit OTP sent to ${email}`);
       setOtpSent(true);
     } catch (err: any) {
-      setErrorMsg(err?.message || 'Failed to send OTP code.');
+      const msg = err?.message && err?.message !== '{}' ? err?.message : 'Failed to send OTP code.';
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }
