@@ -8,7 +8,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { useToast } from '@/components/ui/Toast';
-import { BookOpen, ArrowRight, KeyRound, Mail, ShieldCheck, ExternalLink, Sparkles } from 'lucide-react';
+import { BookOpen, ArrowRight, KeyRound, Mail, ShieldCheck, ExternalLink, Sparkles, X, CheckCircle2 } from 'lucide-react';
 import styles from '../auth.module.css';
 
 export default function LoginPage() {
@@ -26,6 +26,13 @@ export default function LoginPage() {
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Forgot Password Modal state
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotErrorMsg, setForgotErrorMsg] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -224,38 +231,48 @@ export default function LoginPage() {
     }
   };
 
-  const handleForgotPassword = async (e: React.MouseEvent) => {
+  const handleOpenForgotModal = (e: React.MouseEvent) => {
     e.preventDefault();
-    setErrorMsg('');
+    setForgotEmail(email);
+    setForgotSent(false);
+    setForgotErrorMsg('');
+    setShowForgotModal(true);
+  };
 
-    if (!email || !email.includes('@')) {
-      toast.warning('Please enter your email address above to receive reset link.');
+  const handleSendPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotErrorMsg('');
+
+    if (!forgotEmail || !forgotEmail.includes('@')) {
+      setForgotErrorMsg('Please enter a valid email address.');
       return;
     }
 
     try {
-      setLoading(true);
+      setForgotLoading(true);
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const isPlaceholder = !supabaseUrl || supabaseUrl.includes('placeholder');
 
       if (isPlaceholder) {
-        toast.success(`Password reset email sent to ${email} (Demo mode)`);
+        setForgotSent(true);
+        toast.success(`Password reset email sent to ${forgotEmail} (Demo mode)`);
         return;
       }
 
       const supabase = createClient();
       const redirectTo = `${window.location.origin}/api/auth/callback?next=/${locale}/settings`;
-      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, { redirectTo });
 
       if (error) {
-        toast.error(error.message || 'Failed to send password reset email.');
+        setForgotErrorMsg(error.message || 'Failed to send password reset email.');
       } else {
-        toast.success(`Password reset link sent to ${email}! Check your inbox.`);
+        setForgotSent(true);
+        toast.success(`Password reset instructions sent to ${forgotEmail}`);
       }
     } catch (err: any) {
-      toast.error(err?.message || 'Failed to send password reset email.');
+      setForgotErrorMsg(err?.message || 'Failed to send password reset email.');
     } finally {
-      setLoading(false);
+      setForgotLoading(false);
     }
   };
 
@@ -375,9 +392,13 @@ export default function LoginPage() {
           <div className="input-group">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <label className="input-label">Password</label>
-              <a href="#" onClick={handleForgotPassword} style={{ fontSize: '0.8rem', color: 'var(--accent)' }}>
+              <button
+                type="button"
+                onClick={handleOpenForgotModal}
+                style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.8rem', color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}
+              >
                 Forgot password?
-              </a>
+              </button>
             </div>
             <input
               type="password"
@@ -515,6 +536,117 @@ export default function LoginPage() {
           Sign up
         </Link>
       </p>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px',
+          }}
+          onClick={() => setShowForgotModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#150D2A',
+              border: '1px solid var(--primary-light)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '24px',
+              maxWidth: '420px',
+              width: '100%',
+              boxShadow: 'var(--shadow-lg)',
+              position: 'relative',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <KeyRound size={22} color="var(--accent)" />
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Reset Your Password</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {forgotErrorMsg && (
+              <div className={styles.errorBox} style={{ marginBottom: '16px' }}>
+                {forgotErrorMsg}
+              </div>
+            )}
+
+            {!forgotSent ? (
+              <form onSubmit={handleSendPasswordReset}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '16px' }}>
+                  Enter your email address below to receive password reset instructions.
+                </p>
+
+                <div className="input-group">
+                  <label className="input-label">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    autoFocus
+                    className="input-field"
+                    placeholder="owner@store.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    className="btn btn-secondary"
+                    style={{ flex: 1 }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="btn btn-accent"
+                    style={{ flex: 2 }}
+                  >
+                    {forgotLoading ? 'Sending Link...' : 'Send Reset Link'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(0, 201, 167, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', color: 'var(--accent)' }}>
+                  <CheckCircle2 size={28} />
+                </div>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '8px' }}>Reset Link Sent!</h4>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '20px' }}>
+                  We emailed password reset instructions to <strong style={{ color: 'var(--text)' }}>{forgotEmail}</strong>. Check your inbox and follow the link to reset your password.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(false)}
+                  className="btn btn-secondary"
+                  style={{ width: '100%' }}
+                >
+                  Done
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
