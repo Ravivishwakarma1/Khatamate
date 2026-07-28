@@ -122,6 +122,9 @@ export default function SettingsPage() {
       const supabase = createClient();
       await supabase.auth.signOut();
     } catch (e) {}
+    localStorage.removeItem('khataflow_user');
+    document.cookie = 'khataflow_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax;';
+    document.cookie = 'khataflow_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax;';
     window.location.href = `/${currentLocale}/login`;
   };
 
