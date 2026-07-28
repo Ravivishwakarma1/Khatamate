@@ -8,7 +8,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { useToast } from '@/components/ui/Toast';
-import { BookOpen, ArrowRight, KeyRound, Mail, ShieldCheck } from 'lucide-react';
+import { BookOpen, ArrowRight, KeyRound, Mail, ShieldCheck, ExternalLink, Sparkles } from 'lucide-react';
 import styles from '../auth.module.css';
 
 export default function LoginPage() {
@@ -18,11 +18,12 @@ export default function LoginPage() {
   const toast = useToast();
   const { user } = useAuth();
 
-  const [authMethod, setAuthMethod] = useState<'PASSWORD' | 'OTP'>('PASSWORD');
+  const [authMethod, setAuthMethod] = useState<'PASSWORD' | 'OTP' | 'MAGIC_LINK'>('PASSWORD');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -111,11 +112,57 @@ export default function LoginPage() {
         return;
       }
 
-      toast.success(`6-digit OTP sent to ${email}`);
+      toast.success(`OTP code sent to ${email}`);
       setOtpSent(true);
     } catch (err: any) {
       const msg = err?.message && err?.message !== '{}' ? err?.message : 'Failed to send OTP code.';
       setErrorMsg(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+
+    if (!email || !email.includes('@')) {
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const isPlaceholder = !supabaseUrl || supabaseUrl.includes('placeholder');
+
+      if (isPlaceholder) {
+        toast.success(`Demo magic link sent to ${email}`);
+        setMagicLinkSent(true);
+        setLoading(false);
+        return;
+      }
+
+      const supabase = createClient();
+      const redirectTo = `${window.location.origin}/api/auth/callback?next=/${locale}/dashboard`;
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: redirectTo,
+          shouldCreateUser: true,
+        },
+      });
+
+      if (error) {
+        setErrorMsg(error.message || 'Failed to send Magic Link.');
+        setLoading(false);
+        return;
+      }
+
+      toast.success(`1-Click Magic Link sent to ${email}!`);
+      setMagicLinkSent(true);
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Failed to send Magic Link.');
     } finally {
       setLoading(false);
     }
@@ -177,13 +224,39 @@ export default function LoginPage() {
     }
   };
 
-  const handleForgotPassword = (e: React.MouseEvent) => {
+  const handleForgotPassword = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!email) {
-      toast.warning('Enter your email address to receive reset link');
+    setErrorMsg('');
+
+    if (!email || !email.includes('@')) {
+      toast.warning('Please enter your email address above to receive reset link.');
       return;
     }
-    toast.success(`Password reset instructions sent to ${email}`);
+
+    try {
+      setLoading(true);
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const isPlaceholder = !supabaseUrl || supabaseUrl.includes('placeholder');
+
+      if (isPlaceholder) {
+        toast.success(`Password reset email sent to ${email} (Demo mode)`);
+        return;
+      }
+
+      const supabase = createClient();
+      const redirectTo = `${window.location.origin}/api/auth/callback?next=/${locale}/settings`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+
+      if (error) {
+        toast.error(error.message || 'Failed to send password reset email.');
+      } else {
+        toast.success(`Password reset link sent to ${email}! Check your inbox.`);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to send password reset email.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -199,11 +272,11 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* Auth Method Selector (Password vs OTP) */}
+      {/* Auth Method Selector */}
       <div
         style={{
           display: 'flex',
-          gap: '8px',
+          gap: '4px',
           background: 'rgba(255, 255, 255, 0.05)',
           padding: '4px',
           borderRadius: 'var(--radius-md)',
@@ -215,44 +288,66 @@ export default function LoginPage() {
           onClick={() => { setAuthMethod('PASSWORD'); setErrorMsg(''); }}
           style={{
             flex: 1,
-            padding: '8px 12px',
+            padding: '8px 6px',
             border: 'none',
             borderRadius: 'var(--radius-sm)',
             background: authMethod === 'PASSWORD' ? 'var(--primary-light)' : 'transparent',
             color: authMethod === 'PASSWORD' ? '#FFFFFF' : 'var(--text-muted)',
             fontWeight: 700,
-            fontSize: 'var(--text-xs)',
+            fontSize: '0.75rem',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '6px',
+            gap: '4px',
             transition: 'all 0.2s ease',
           }}
         >
-          <KeyRound size={14} /> Password
+          <KeyRound size={13} /> Password
         </button>
         <button
           type="button"
           onClick={() => { setAuthMethod('OTP'); setErrorMsg(''); setOtpSent(false); }}
           style={{
             flex: 1,
-            padding: '8px 12px',
+            padding: '8px 6px',
             border: 'none',
             borderRadius: 'var(--radius-sm)',
             background: authMethod === 'OTP' ? 'var(--accent)' : 'transparent',
             color: authMethod === 'OTP' ? '#0F0A1E' : 'var(--text-muted)',
             fontWeight: 700,
-            fontSize: 'var(--text-xs)',
+            fontSize: '0.75rem',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '6px',
+            gap: '4px',
             transition: 'all 0.2s ease',
           }}
         >
-          <Mail size={14} /> Email OTP
+          <Mail size={13} /> OTP Code
+        </button>
+        <button
+          type="button"
+          onClick={() => { setAuthMethod('MAGIC_LINK'); setErrorMsg(''); setMagicLinkSent(false); }}
+          style={{
+            flex: 1,
+            padding: '8px 6px',
+            border: 'none',
+            borderRadius: 'var(--radius-sm)',
+            background: authMethod === 'MAGIC_LINK' ? 'var(--gold)' : 'transparent',
+            color: authMethod === 'MAGIC_LINK' ? '#0F0A1E' : 'var(--text-muted)',
+            fontWeight: 700,
+            fontSize: '0.75rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '4px',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <Sparkles size={13} /> Magic Link
         </button>
       </div>
 
@@ -319,7 +414,7 @@ export default function LoginPage() {
               </div>
 
               <button type="submit" disabled={loading} className="btn btn-accent" style={{ width: '100%', marginTop: '8px' }}>
-                {loading ? 'Sending Code...' : 'Send 6-Digit OTP Code'}
+                {loading ? 'Sending Code...' : 'Send Verification OTP Code'}
                 {!loading && <Mail size={18} />}
               </button>
             </form>
@@ -357,6 +452,51 @@ export default function LoginPage() {
                 Change Email / Resend Code
               </button>
             </form>
+          )}
+        </>
+      )}
+
+      {/* Magic Link Form */}
+      {authMethod === 'MAGIC_LINK' && (
+        <>
+          {!magicLinkSent ? (
+            <form onSubmit={handleSendMagicLink}>
+              <div className="input-group">
+                <label className="input-label">Email Address for 1-Click Magic Link</label>
+                <input
+                  type="email"
+                  required
+                  className="input-field"
+                  placeholder="owner@store.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <button type="submit" disabled={loading} className="btn btn-secondary" style={{ width: '100%', marginTop: '8px', background: 'var(--gradient-accent)', color: '#0F0A1E', fontWeight: 800 }}>
+                {loading ? 'Sending Magic Link...' : 'Send 1-Click Magic Link'}
+                {!loading && <Sparkles size={18} />}
+              </button>
+            </form>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '16px 0' }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255, 184, 0, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--gold)' }}>
+                <ExternalLink size={28} />
+              </div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '8px' }}>Check Your Inbox!</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '20px' }}>
+                We emailed a 1-click login link to <strong style={{ color: 'var(--text)' }}>{email}</strong>. Click the link in your email to log in instantly.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setMagicLinkSent(false)}
+                className="btn btn-ghost"
+                style={{ fontSize: '0.8rem', color: 'var(--accent)' }}
+              >
+                Resend Link / Use Another Email
+              </button>
+            </div>
           )}
         </>
       )}
