@@ -48,12 +48,28 @@ export default function RegisterPage() {
 
     try {
       setLoading(true);
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const isPlaceholder = !supabaseUrl || supabaseUrl.includes('placeholder');
       const supabase = createClient();
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { full_name: fullName } },
       });
+
+      if (error) {
+        if (!isPlaceholder) {
+          setErrorMsg(error.message || 'Registration failed.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (data?.user && !data?.session && !isPlaceholder) {
+        toast.info('Verification link/code sent to your email.');
+        window.location.href = `/${locale}/verify?email=${encodeURIComponent(email)}`;
+        return;
+      }
 
       const localUser = { uid: data?.user?.id || `usr_${Date.now()}`, email, displayName: fullName };
       localStorage.setItem('khataflow_user', JSON.stringify(localUser));
