@@ -46,8 +46,6 @@ export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('khataflow_session')?.value;
   const isAuthenticated = Boolean(supabaseUser || sessionCookie);
 
-  const pathname = request.nextUrl.pathname;
-
   // Extract locale from path if present (e.g., /en/login -> /login)
   const pathnameIsMissingLocale = locales.every(
     (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
