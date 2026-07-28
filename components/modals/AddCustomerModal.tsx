@@ -27,6 +27,8 @@ export default function AddCustomerModal({
   const [roomId, setRoomId] = useState('');
   const [creditLimit, setCreditLimit] = useState('');
   const [notes, setNotes] = useState('');
+  const [entityType, setEntityType] = useState<'customer' | 'supplier'>('customer');
+  const [isRegular, setIsRegular] = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState<Customer | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -35,7 +37,7 @@ export default function AddCustomerModal({
     setErrorMsg('');
 
     if (!name.trim()) {
-      setErrorMsg('Please enter a customer name.');
+      setErrorMsg('Please enter a name.');
       return;
     }
 
@@ -59,12 +61,14 @@ export default function AddCustomerModal({
       outstanding_due: 0,
       notes: notes.trim() || undefined,
       is_active: true,
+      entity_type: entityType,
+      is_regular: isRegular,
       created_at: now,
       updated_at: now,
     };
 
     await saveLocalCustomer(newCust);
-    toast.success(`Created customer account for ${newCust.name}`);
+    toast.success(`Created ${entityType} account for ${newCust.name}`);
     onCustomerAdded(newCust);
     onClose();
   };
@@ -130,13 +134,56 @@ export default function AddCustomerModal({
         )}
 
         <form onSubmit={handleSubmit}>
+          {/* Account Type Selector */}
+          <div className="input-group" style={{ marginBottom: '16px' }}>
+            <label className="input-label">Account Type</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setEntityType('customer')}
+                className="btn"
+                style={{
+                  flex: 1,
+                  background: entityType === 'customer' ? 'var(--gradient-coral)' : 'var(--bg-input)',
+                  color: entityType === 'customer' ? '#FFF' : 'var(--text-muted)',
+                  fontSize: '0.82rem',
+                }}
+              >
+                👥 Customer (Grahak)
+              </button>
+              <button
+                type="button"
+                onClick={() => setEntityType('supplier')}
+                className="btn"
+                style={{
+                  flex: 1,
+                  background: entityType === 'supplier' ? 'var(--gradient-coral)' : 'var(--bg-input)',
+                  color: entityType === 'supplier' ? '#FFF' : 'var(--text-muted)',
+                  fontSize: '0.82rem',
+                }}
+              >
+                🚚 Supplier (Wholesaler)
+              </button>
+            </div>
+          </div>
+
           <div className="input-group">
-            <label className="input-label">Customer Name *</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label className="input-label">{entityType === 'customer' ? 'Customer Name *' : 'Supplier / Distributor Name *'}</label>
+              <label style={{ fontSize: '0.78rem', color: 'var(--accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <input
+                  type="checkbox"
+                  checked={isRegular}
+                  onChange={(e) => setIsRegular(e.target.checked)}
+                />
+                ⭐ Regular Customer
+              </label>
+            </div>
             <input
               type="text"
               required
               className="input-field"
-              placeholder="e.g. Ramesh Kumar"
+              placeholder={entityType === 'customer' ? 'e.g. Ramesh Kumar' : 'e.g. Laxmi Traders (Atta Wholesaler)'}
               value={name}
               onChange={(e) => {
                 setName(e.target.value);

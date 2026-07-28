@@ -4,7 +4,6 @@ import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Customer, Transaction, Shop } from '@/lib/db/schema';
 import { getLocalCustomerById, getLocalTransactionsByCustomer, getAllLocalShops, saveLocalTransaction } from '@/lib/db/idb';
-import { getCustomerFromFirestore, getTransactionsFromFirestore, getShopFromFirestore } from '@/lib/firebase/firestoreSync';
 import BillSlipModal from '@/components/modals/BillSlipModal';
 import { BookOpen, Calendar, Printer, Receipt, ShieldCheck, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import styles from '../passbook.module.css';
@@ -31,11 +30,6 @@ function PassbookContent() {
         // 1. Try local IndexedDB first
         let custData: Customer | null | undefined = await getLocalCustomerById(customerId);
 
-        // 2. If not found locally, fetch from Cloud Firestore
-        if (!custData) {
-          custData = await getCustomerFromFirestore(customerId);
-        }
-
         // 3. Fallback: Parse customer parameters encoded directly in the QR code URL
         if (!custData && searchParams) {
           const nameParam = searchParams.get('name');
@@ -59,11 +53,8 @@ function PassbookContent() {
         setCustomer(custData || null);
 
         if (custData) {
-          // 4. Fetch transactions (Local IndexedDB first, then Cloud Firestore, then QR Code URL params)
+          // 4. Fetch transactions (Local IndexedDB first, then QR Code URL params)
           let txList = await getLocalTransactionsByCustomer(customerId);
-          if (!txList || txList.length === 0) {
-            txList = await getTransactionsFromFirestore(customerId);
-          }
 
           // Decode transactions encoded in the QR Code URL ('txs')
           if ((!txList || txList.length === 0) && searchParams) {
@@ -182,9 +173,6 @@ function PassbookContent() {
           // 5. Fetch Shop info
           const shopsList = await getAllLocalShops();
           let shopData: Shop | null | undefined = shopsList[0];
-          if (!shopData && custData.shop_id) {
-            shopData = await getShopFromFirestore(custData.shop_id);
-          }
 
           const shopNameParam = searchParams?.get('shop');
 

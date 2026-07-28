@@ -1,7 +1,5 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { Customer, Transaction, Shop } from './schema';
-import { saveShopToFirestore, saveCustomerToFirestore, saveTransactionToFirestore } from '../firebase/firestoreSync';
-
 
 interface KhataFlowDB extends DBSchema {
   shops: {
@@ -87,12 +85,9 @@ export async function getAllLocalShops(): Promise<Shop[]> {
 }
 
 export async function saveLocalShop(shop: Shop): Promise<void> {
-
-
   const db = await getDB();
   if (!db) return;
   await db.put('shops', shop);
-  saveShopToFirestore(shop).catch(() => {});
 }
 
 export async function deleteLocalShop(id: string): Promise<void> {
@@ -118,7 +113,6 @@ export async function saveLocalCustomer(customer: Customer): Promise<void> {
   const db = await getDB();
   if (!db) return;
   await db.put('customers', customer);
-  saveCustomerToFirestore(customer).catch(() => {});
 }
 
 export async function deleteLocalCustomer(id: string): Promise<void> {
@@ -156,8 +150,8 @@ export async function saveLocalTransaction(transaction: Transaction): Promise<vo
   const db = await getDB();
   if (!db) return;
   await db.put('transactions', transaction);
-  saveTransactionToFirestore(transaction).catch(() => {});
 }
+
 
 
 // Seed Demo Data if empty (returns current local customers)

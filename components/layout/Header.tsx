@@ -7,7 +7,6 @@ import { useTranslations } from 'next-intl';
 import { BookOpen, Globe, LogOut, Store, Plus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useShopStore } from '@/lib/shopStore';
-import { signOutUser } from '@/lib/firebase/auth';
 import AddShopModal from '@/components/modals/AddShopModal';
 import styles from './Header.module.css';
 
@@ -26,8 +25,10 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      await signOutUser();
+      const supabase = createClient();
+      await supabase.auth.signOut();
     } catch (e) {}
+    localStorage.removeItem('khataflow_user');
     window.location.href = `/${locale}/login`;
   };
 

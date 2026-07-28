@@ -7,6 +7,9 @@ import { useToast } from '@/components/ui/Toast';
 import { X, AlertCircle } from 'lucide-react';
 import styles from './modal.module.css';
 
+import BigKeypad from '@/components/ui/BigKeypad';
+import VoiceInputButton from '@/components/ui/VoiceInputButton';
+
 interface RecordPaymentModalProps {
   customer: Customer;
   onClose: () => void;
@@ -17,6 +20,7 @@ export default function RecordPaymentModal({ customer, onClose, onSuccess }: Rec
   const toast = useToast();
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
+  const [showKeypad, setShowKeypad] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -31,6 +35,12 @@ export default function RecordPaymentModal({ customer, onClose, onSuccess }: Rec
   } else {
     excessAdvance = payAmount - currentDue;
   }
+
+  const handleVoiceParsed = (entry: any) => {
+    if (entry.amount) setAmount(entry.amount.toString());
+    if (entry.rawText) setNote(entry.rawText);
+    toast.success('Voice entry parsed!');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +85,19 @@ export default function RecordPaymentModal({ customer, onClose, onSuccess }: Rec
 
         {errorMsg && <div className={styles.errorBanner}>{errorMsg}</div>}
 
+        {/* Voice Input & Helper bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <VoiceInputButton onParsed={handleVoiceParsed} />
+          <button
+            type="button"
+            onClick={() => setShowKeypad(!showKeypad)}
+            className="btn btn-secondary"
+            style={{ fontSize: '0.8rem' }}
+          >
+            {showKeypad ? '⌨️ Use Keyboard' : '🔢 Calculator Keypad'}
+          </button>
+        </div>
+
         {/* Current Balance Display */}
         <div style={{ background: 'var(--bg-input)', padding: '14px 18px', borderRadius: 'var(--radius-md)', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Current Total Outstanding:</span>
@@ -99,6 +122,10 @@ export default function RecordPaymentModal({ customer, onClose, onSuccess }: Rec
               onChange={(e) => setAmount(e.target.value)}
             />
           </div>
+
+          {showKeypad && (
+            <BigKeypad value={amount} onChange={(val) => setAmount(val)} />
+          )}
 
           <div className="input-group">
             <label className="input-label">Note / Payment Mode (Optional)</label>

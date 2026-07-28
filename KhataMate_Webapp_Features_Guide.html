@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KhataMate / KhataFlow - Complete Webapp Features & Architecture Guide</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    @page {
+      size: A4 portrait;
+      margin: 16mm 14mm 16mm 14mm;
+      @bottom-right {
+        content: counter(page);
+        font-family: 'Inter', sans-serif;
+        font-size: 9pt;
+        color: #64748B;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1E293B;
+      background-color: #FFFFFF;
+      line-height: 1.5;
+      font-size: 10pt;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1, h2, h3, h4, h5 {
+      color: #0F172A;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-top: 0;
+    }
+
+    /* Cover Page */
+    .cover-page {
+      height: 100vh;
+      min-height: 250mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 30px 20px;
+      background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #312E81 100%);
+      color: #FFFFFF;
+      border-radius: 16px;
+      margin-bottom: 30px;
+      page-break-after: always;
+    }
+
+    .cover-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .badge-primary {
+      background: rgba(99, 102, 241, 0.25);
+      border: 1px solid rgba(129, 140, 248, 0.4);
+      color: #C7D2FE;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 9pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .cover-body {
+      margin-top: 40px;
+      margin-bottom: 40px;
+    }
+
+    .cover-title {
+      font-size: 32pt;
+      font-weight: 800;
+      line-height: 1.15;
+      color: #FFFFFF;
+      margin-bottom: 12px;
+      letter-spacing: -0.03em;
+    }
+
+    .cover-subtitle {
+      font-size: 14pt;
+      color: #A5B4FC;
+      font-weight: 400;
+      margin-bottom: 24px;
+      max-width: 90%;
+    }
+
+    .cover-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .pill {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #E0E7FF;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 9pt;
+      font-weight: 500;
+    }
+
+    .cover-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9pt;
+      color: #94A3B8;
+    }
+
+    /* Page Breaks & Layout */
+    .page {
+      page-break-after: always;
+      padding-top: 10px;
+    }
+    .page:last-child {
+      page-break-after: avoid;
+    }
+
+    .section-header {
+      border-bottom: 2px solid #E2E8F0;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-title {
+      font-size: 16pt;
+      color: #1E1B4B;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-icon {
+      width: 28px;
+      height: 28px;
+      background: #4F46E5;
+      color: white;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11pt;
+      font-weight: bold;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .card-accent {
+      border-left: 4px solid #4F46E5;
+    }
+
+    .card-success {
+      border-left: 4px solid #10B981;
+    }
+
+    .card-warning {
+      border-left: 4px solid #F59E0B;
+    }
+
+    .card-danger {
+      border-left: 4px solid #EF4444;
+    }
+
+    .card-title {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #0F172A;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-desc {
+      font-size: 9.5pt;
+      color: #475569;
+      margin: 0;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0 0;
+    }
+
+    .feature-list li {
+      position: relative;
+      padding-left: 18px;
+      margin-bottom: 6px;
+      font-size: 9.5pt;
+      color: #334155;
+    }
+
+    .feature-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #4F46E5;
+      font-weight: bold;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      font-size: 9pt;
+    }
+
+    th {
+      background-color: #F1F5F9;
+      color: #1E293B;
+      text-align: left;
+      padding: 8px 12px;
+      font-weight: 600;
+      border-bottom: 2px solid #CBD5E1;
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #E2E8F0;
+      color: #334155;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #FAFAFA;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 8pt;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .tag-purple { background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE; }
+    .tag-green { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+    .tag-amber { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+    .tag-red { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+    .tag-blue { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.5pt;
+      background: #F1F5F9;
+      color: #0F172A;
+      padding: 2px 5px;
+      border-radius: 4px;
+      border: 1px solid #E2E8F0;
+    }
+
+    .alert {
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .alert-icon {
+      color: #2563EB;
+      font-weight: bold;
+      font-size: 12pt;
+    }
+
+    .alert-content {
+      font-size: 9.5pt;
+      color: #1E40AF;
+    }
+
+    .workflow-box {
+      background: #FFFFFF;
+      border: 1px dashed #6366F1;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    .workflow-steps {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-node {
+      background: #EEF2FF;
+      border: 1px solid #C7D2FE;
+      color: #3730A3;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 8.5pt;
+      flex: 1;
+    }
+
+    .step-arrow {
+      color: #6366F1;
+      font-weight: bold;
+      font-size: 12pt;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 8.5pt;
+      color: #94A3B8;
+      margin-top: 30px;
+      border-top: 1px solid #E2E8F0;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER PAGE -->
+  <div class="cover-page">
+    <div class="cover-header">
+      <div style="font-size: 20pt; font-weight: 800; tracking: -0.05em; display: flex; align-items: center; gap: 8px;">
+        <span style="background: #4F46E5; padding: 4px 10px; border-radius: 8px; color: white;">KF</span> KhataMate
+      </div>
+      <div class="badge-primary">Official System Manual</div>
+    </div>
+
+    <div class="cover-body">
+      <div class="cover-title">Complete Webapp Feature & Technical Guide</div>
+      <div class="cover-subtitle">Detailed specification of all modules, engines, offline capabilities, security protocols, and financial tools in KhataMate / KhataFlow.</div>
+      
+      <div class="cover-pills">
+        <div class="pill">⚡ Next.js 16 (App Router)</div>
+        <div class="pill">⚛️ React 19</div>
+        <div class="pill">📲 PWA & Offline-First (IndexedDB)</div>
+        <div class="pill">🌐 8 Indian Languages</div>
+        <div class="pill">🔒 4-Digit Security PIN</div>
+        <div class="pill">☁️ Dual Sync (Supabase + Firebase)</div>
+      </div>
+    </div>
+
+    <div class="cover-footer">
+      <div><strong>Document Status:</strong> Complete & Verified</div>
+      <div><strong>Generated:</strong> July 2026</div>
+      <div><strong>App Version:</strong> 2.0.0 (Production)</div>
+    </div>
+  </div>
+
+  <!-- PAGE 1: EXECUTIVE SUMMARY & ARCHITECTURE -->
+  <div class="page">
+    <div class="section-header">
+      <h2 class="section-title"><span class="section-icon">01</span> Executive Overview & Core Architecture</h2>
+      <span class="tag tag-purple">Core Architecture</span>
+    </div>
+
+    <p style="font-size: 9.5pt; color: #475569; margin-bottom: 16px;">
+      <strong>KhataMate (KhataFlow)</strong> is a state-of-the-art, multi-lingual, offline-first digital ledger web application engineered for small business owners, micro-merchants, retail shopkeepers, and service providers. It empowers users to record daily credit (Udhar) and payment (Jama) transactions seamlessly with zero internet dependence while ensuring multi-device cloud synchronization when connectivity is available.
+    </p>
+
+    <div class="alert">
+      <div class="alert-icon">ℹ️</div>
+      <div class="alert-content">
+        <strong>Zero Downtime Offline Guarantee:</strong> All customer profile creations, transactions, and ledger entries write instantly to local browser IndexedDB storage before queued sync. The application remains fully functional even in deep rural internet dead zones.
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-accent">
+        <div class="card-title">1. Offline-First IndexedDB Engine <code>lib/db/idb.ts</code></div>
+        <div class="card-desc">
+          Utilizes client-side IndexedDB database via the <code>idb</code> library. Stores customer profiles, full itemized transaction histories, shop preferences, and pending sync queues locally.
+        </div>
+        <ul class="feature-list">
+          <li>Instant optimistic state updates with zero latency</li>
+          <li>Auto-reconciliation upon internet restoration</li>
+          <li>Local transaction search and calculation engine</li>
+        </ul>
+      </div>
+
+      <div class="card card-success">
+        <div class="card-title">2. Dual Cloud Sync Layer <code>lib/db/sync.ts</code></div>
+        <div class="card-desc">
+          Combines <strong>Supabase SSR</strong> PostgreSQL backend for persistent server state with <strong>Firebase Realtime Database</strong> for live multi-device session updates.
+        </div>
+        <ul class="feature-list">
+          <li>Background conflict resolution and timestamps</li>
+          <li>Real-time multi-device ledger mirroring</li>
+          <li>Multi-user role permissions (Owner, Manager, Staff)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-warning">
+        <div class="card-title">3. Multi-Lingual Engine (8 Languages) <code>i18n.ts</code></div>
+        <div class="card-desc">
+          Powered by <code>next-intl</code> with localized dictionaries in <code>messages/*.json</code>. Offers seamless on-the-fly switching without app reloads.
+        </div>
+        <ul class="feature-list">
+          <li>English, Hindi (हिन्दी), Bengali (বাংলা)</li>
+          <li>Gujarati (ગુજરાતી), Marathi (मराठी), Punjabi (ਪੰਜਾਬੀ)</li>
+          <li>Tamil (தமிழ்), Telugu (తెలుగు)</li>
+        </ul>
+      </div>
+
+      <div class="card card-danger">
+        <div class="card-title">4. App PIN Lockscreen Security <code>lib/pin.ts</code></div>
+        <div class="card-desc">
+          Protects customer credit records from unauthorized physical access using a 4-digit security PIN.
+        </div>
+        <ul class="feature-list">
+          <li>Local cryptographic hash check</li>
+          <li>Session auto-lock on inactivity or app switch</li>
+          <li>Quick PIN change & lockscreen test simulator in Settings</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="font-size: 11pt; color: #1E1B4B; margin-top: 20px; margin-bottom: 8px;">System Technology Stack Breakdown</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Technology Chosen</th>
+          <th>Purpose & Key Benefit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Framework</strong></td>
+          <td>Next.js 16 (App Router) + React 19</td>
+          <td>High performance server and client rendering with layout routing</td>
+        </tr>
+        <tr>
+          <td><strong>Local Storage</strong></td>
+          <td>IndexedDB (via <code>idb v8.0</code>)</td>
+          <td>High-capacity offline local database storing full customer ledgers</td>
+        </tr>
+        <tr>
+          <td><strong>State Manager</strong></td>
+          <td>Zustand v4.5</td>
+          <td>Lightweight, un-opinionated global state management for active shops</td>
+        </tr>
+        <tr>
+          <td><strong>Analytics & Charts</strong></td>
+          <td>Recharts v2.12</td>
+          <td>Responsive SVG graphs for credit trends and recovery rate breakdowns</td>
+        </tr>
+        <tr>
+          <td><strong>Fuzzy Search Engine</strong></td>
+          <td>Fuse.js v7.0</td>
+          <td>Client-side typo-tolerant searching across names, phones & rooms</td>
+        </tr>
+        <tr>
+          <td><strong>QR & Invoicing</strong></td>
+          <td><code>qrcode.react</code> + Print CSS</td>
+          <td>Dynamic generation of UPI payment QR codes and printable receipts</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGE 2: DASHBOARD & CUSTOMER DIRECTORY -->
+  <div class="page">
+    <div class="section-header">
+      <h2 class="section-title"><span class="section-icon">02</span> Dashboard & Customer Directory</h2>
+      <span class="tag tag-blue">Operations</span>
+    </div>
+
+    <h3 style="font-size: 12pt; color: #0F172A; margin-bottom: 8px;">Executive Dashboard <code>app/[locale]/(app)/dashboard</code></h3>
+    <p style="font-size: 9.5pt; color: #475569; margin-bottom: 12px;">
+      The Dashboard serves as the daily financial control tower for the shop owner. It aggregates critical financial stats across active customer accounts in real time.
+    </p>
+
+    <div class="grid-3">
+      <div class="card card-danger">
+        <div class="card-title">Total Outstanding</div>
+        <div style="font-size: 16pt; font-weight: 800; color: #DC2626; margin: 4px 0;">₹45,280.00</div>
+        <div class="card-desc">Total uncollected credit across active accounts</div>
+      </div>
+      <div class="card card-success">
+        <div class="card-title">Collected Today</div>
+        <div style="font-size: 16pt; font-weight: 800; color: #059669; margin: 4px 0;">₹12,400.00</div>
+        <div class="card-desc">Total Jama payments received today</div>
+      </div>
+      <div class="card card-warning">
+        <div class="card-title">Credit Given Today</div>
+        <div style="font-size: 16pt; font-weight: 800; color: #D97706; margin: 4px 0;">₹6,150.00</div>
+        <div class="card-desc">Total Udhar entries created today</div>
+      </div>
+    </div>
+
+    <div class="card card-accent" style="margin-bottom: 20px;">
+      <div class="card-title">Multi-Shop & Multi-Business Switcher <code>lib/shopStore.ts</code></div>
+      <div class="card-desc">
+        Business owners operating multiple stores (e.g., Grocery Shop + Electronics Store) can switch ledgers with 1 click. Each shop maintains completely isolated customer lists, transactions, GST profiles, and currency settings.
+      </div>
+    </div>
+
+    <h3 style="font-size: 12pt; color: #0F172A; margin-top: 24px; margin-bottom: 8px;">Customer Ledger Directory <code>app/[locale]/(app)/customers</code></h3>
+    <p style="font-size: 9.5pt; color: #475569; margin-bottom: 12px;">
+      The Customer Directory organizes customer accounts with deep filtering, instant search, and credit risk badges.
+    </p>
+
+    <table style="margin-bottom: 16px;">
+      <thead>
+        <tr>
+          <th>Filter / Action</th>
+          <th>Behavior & Functionality</th>
+          <th>Use Case</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag tag-red">🔴 Has Udhar Dues</span></td>
+          <td>Filters customers with net positive outstanding balance (debts owed to shop)</td>
+          <td>Targeting customers for payment reminders</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-amber">🟡 Has Advance</span></td>
+          <td>Filters customers with prepaid advance wallet balances</td>
+          <td>Identifying advance buyers & overpayments</td>
+        </tr>
+        <tr>
+          <td><strong>Smart Sorting</strong></td>
+          <td>Sort by: Highest Udhar Dues, Name (A–Z), or Most Recent Activity</td>
+          <td>Prioritizing high-risk dues collection</td>
+        </tr>
+        <tr>
+          <td><strong>Fuse.js Search</strong></td>
+          <td>Fuzzy search across Customer Name, Phone Number, and Room/Flat ID</td>
+          <td>Instant lookup even with typos or partial names</td>
+        </tr>
+        <tr>
+          <td><strong>Credit Limit Warning</strong></td>
+          <td>Displays alert badge when customer balance nears custom <code>credit_limit</code></td>
+          <td>Preventing over-extension of credit to defaulted buyers</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="workflow-box">
+      <div style="font-weight: 700; color: #3730A3; margin-bottom: 8px; font-size: 9pt;">CUSTOMER ACCOUNT LIFECYCLE WORKFLOW</div>
+      <div class="workflow-steps">
+        <div class="step-node">1. Add Customer Profile</div>
+        <div class="step-arrow">➔</div>
+        <div class="step-node">2. Set Credit Limit & Tags</div>
+        <div class="step-arrow">➔</div>
+        <div class="step-node">3. Record Credit / Payment</div>
+        <div class="step-arrow">➔</div>
+        <div class="step-node">4. Monitor Net Balance</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3: PASSBOOK & FINANCIAL ENGINE -->
+  <div class="page">
+    <div class="section-header">
+      <h2 class="section-title"><span class="section-icon">03</span> Customer Passbook & Advance Wallet Engine</h2>
+      <span class="tag tag-green">Financial Logic</span>
+    </div>
+
+    <h3 style="font-size: 12pt; color: #0F172A; margin-bottom: 8px;">Customer Passbook Ledger <code>app/[locale]/passbook/[id]</code></h3>
+    <p style="font-size: 9.5pt; color: #475569; margin-bottom: 12px;">
+      The Passbook view mimics a traditional paper khata book while providing modern digital audit trails. It presents a live running balance, chronological timeline of every transaction, and per-entry controls.
+    </p>
+
+    <div class="card card-accent">
+      <div class="card-title">Advance Wallet & Overpayment Calculation Engine <code>lib/finance.ts</code></div>
+      <p class="card-desc" style="margin-bottom: 8px;">
+        KhataMate implements a dual-balance accounting equation for every customer profile:
+        <code>Net Balance = Outstanding Due - Advance Balance</code>
+      </p>
+      <ul class="feature-list">
+        <li><strong>Automatic Advance Offset on Credit:</strong> If a customer with an advance balance makes a new purchase (Udhar), the system automatically deducts from the advance wallet first before increasing outstanding dues.</li>
+        <li><strong>Overpayment Allocation on Jama:</strong> If a customer pays more than their outstanding dues, the remaining excess payment is automatically allocated to their advance wallet.</li>
+        <li><strong>Immutable Historical Audit:</strong> Each transaction records exact snapshot values for <code>balance_before</code> and <code>balance_after</code>.</li>
+      </ul>
+    </div>
+
+    <h3 style="font-size: 11pt; color: #1E1B4B; margin-top: 20px; margin-bottom: 8px;">Transaction Types Supported</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Type Code</th>
+          <th>Label</th>
+          <th>Financial Impact</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>CREDIT</code></td>
+          <td>Udhar Given</td>
+          <td><span style="color: #DC2626; font-weight: bold;">+ Outstanding</span></td>
+          <td>Itemized goods/services sold on credit to customer</td>
+        </tr>
+        <tr>
+          <td><code>PAYMENT</code></td>
+          <td>Jama Received</td>
+          <td><span style="color: #059669; font-weight: bold;">- Outstanding</span></td>
+          <td>Cash, UPI, Cheque or Bank payment received from customer</td>
+        </tr>
+        <tr>
+          <td><code>ADVANCE</code></td>
+          <td>Prepaid Jama</td>
+          <td><span style="color: #D97706; font-weight: bold;">+ Advance Wallet</span></td>
+          <td>Customer pre-deposits money for future purchases</td>
+        </tr>
+        <tr>
+          <td><code>WRITEOFF</code></td>
+          <td>Bad Debt Write-off</td>
+          <td><span style="color: #6B7280; font-weight: bold;">Clears Due</span></td>
+          <td>Uncollectable loss written off as bad debt expense</td>
+        </tr>
+        <tr>
+          <td><code>ADJUSTMENT</code></td>
+          <td>Manual Adjustment</td>
+          <td><span style="color: #4F46E5; font-weight: bold;">± Balance</span></td>
+          <td>Corrective accounting entry for audits or discounts</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGE 4: ADVANCED TRANSACTION MODALS & ENGINES -->
+  <div class="page">
+    <div class="section-header">
+      <h2 class="section-title"><span class="section-icon">04</span> Specialized Transaction Engines & Modals</h2>
+      <span class="tag tag-purple">Feature Deep Dive</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-accent">
+        <div class="card-title">1. Itemized Credit Modal <code>AddCreditModal.tsx</code></div>
+        <div class="card-desc">
+          Add detailed credit purchases with rich media & interest calculation.
+        </div>
+        <ul class="feature-list">
+          <li>Itemized rows: Item name, quantity, unit price & auto subtotal</li>
+          <li>Photo attachments: Capture/upload bill receipt photo</li>
+          <li>Voice note recording: Record verbal agreement audio</li>
+          <li>Interest engine: Simple/compound monthly or annual % calculation</li>
+          <li>Payment Promise Date picker with automated overdue alerts</li>
+        </ul>
+      </div>
+
+      <div class="card card-success">
+        <div class="card-title">2. Payment Jama Modal <code>RecordPaymentModal.tsx</code></div>
+        <div class="card-desc">
+          Record incoming payments with payment mode classification.
+        </div>
+        <ul class="feature-list">
+          <li>Multi-mode options: Cash, UPI, Bank Transfer, Cheque</li>
+          <li>Reference number: Store UTR, transaction ID or cheque no.</li>
+          <li>Early settlement waiver / discount handling</li>
+          <li>Automatic advance wallet overflow allocation</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-warning">
+        <div class="card-title">3. Dynamic UPI QR Code <code>CustomerQrModal.tsx</code></div>
+        <div class="card-desc">
+          Generates an on-demand UPI payment QR code dynamically populated with the customer's exact balance due and shop's UPI VPA.
+        </div>
+        <ul class="feature-list">
+          <li>Compatible with PhonePe, GPay, Paytm, BHIM</li>
+          <li>Instant scan & pay on shopkeeper's phone screen</li>
+        </ul>
+      </div>
+
+      <div class="card card-accent">
+        <div class="card-title">4. Printable Bill Slip <code>BillSlipModal.tsx</code></div>
+        <div class="card-desc">
+          Creates mini thermal-receipt style digital tax invoices.
+        </div>
+        <ul class="feature-list">
+          <li>Shop header, GST details & customer room ID</li>
+          <li>Itemized item table with total tax breakdown</li>
+          <li>One-click thermal printer output & WhatsApp sharing</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-danger">
+        <div class="card-title">5. Official Legal Demand Notice <code>LegalModal.tsx</code></div>
+        <div class="card-desc">
+          Generates formal Legal Notice / Demand Letters for chronic defaulters.
+        </div>
+        <ul class="feature-list">
+          <li>Includes statutory interest clause & response deadline</li>
+          <li>Itemized transaction timeline attachment</li>
+          <li>Print-ready legal document format</li>
+        </ul>
+      </div>
+
+      <div class="card card-warning">
+        <div class="card-title">6. Transaction Dispute Engine <code>DisputeModal.tsx</code></div>
+        <div class="card-desc">
+          Resolves buyer-seller ledger discrepancies gracefully.
+        </div>
+        <ul class="feature-list">
+          <li>Mark entry as "Under Dispute" with audit notes</li>
+          <li>Freezes disputed amount until mutual resolution</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-danger">
+        <div class="card-title">7. Bad Debt Write-Off <code>WriteOffModal.tsx</code></div>
+        <div class="card-desc">
+          Write off uncollectable debt (Nuksan) transparently.
+        </div>
+        <ul class="feature-list">
+          <li>Reason tagging: Customer moved, Bankruptcy, Disputed settlement</li>
+          <li>Reduces active outstanding while maintaining audit logs</li>
+        </ul>
+      </div>
+
+      <div class="card card-success">
+        <div class="card-title">8. WhatsApp Reminders <code>SendReminderModal.tsx</code></div>
+        <div class="card-desc">
+          Dispatch localized WhatsApp payment reminders.
+        </div>
+        <ul class="feature-list">
+          <li>Templates: Polite English, Friendly Hindi, Urgent Request</li>
+          <li>Automated <code>wa.me</code> deep links with pre-filled text</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 5: ANALYTICS, REPORTS & DATA PORTABILITY -->
+  <div class="page">
+    <div class="section-header">
+      <h2 class="section-title"><span class="section-icon">05</span> Analytics, Reports & Data Sovereignty</h2>
+      <span class="tag tag-amber">Analytics & Data</span>
+    </div>
+
+    <h3 style="font-size: 12pt; color: #0F172A; margin-bottom: 8px;">Analytics & Visual Reports Module <code>app/[locale]/(app)/reports</code></h3>
+    <p style="font-size: 9.5pt; color: #475569; margin-bottom: 12px;">
+      Powered by <strong>Recharts</strong>, the Reports module turns raw ledger data into actionable credit recovery insights.
+    </p>
+
+    <div class="grid-2">
+      <div class="card card-accent">
+        <div class="card-title">Credit vs. Payment Comparison</div>
+        <div class="card-desc">
+          Bar chart comparing total credit extended vs. total collections over selected time frames (Today, This Week, This Month, All Time).
+        </div>
+      </div>
+
+      <div class="card card-success">
+        <div class="card-title">Ledger Recovery Rate % Metric</div>
+        <div class="card-desc">
+          Calculates debt collection efficiency:
+          <code>Recovery Rate % = (Total Jama / Total Udhar) * 100</code>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-warning">
+        <div class="card-title">Outstanding Dues Trend Chart</div>
+        <div class="card-desc">
+          Line chart visualizing accumulation or reduction of total shop dues over time.
+        </div>
+      </div>
+
+      <div class="card card-danger">
+        <div class="card-title">Top Debtors Breakdown</div>
+        <div class="card-desc">
+          Pie chart ranking top 5 customers with highest outstanding balances for prioritized collection.
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size: 12pt; color: #0F172A; margin-top: 24px; margin-bottom: 8px;">Data Portability & Zero-Vendor Lock-In Engine</h3>
+    <p style="font-size: 9.5pt; color: #475569; margin-bottom: 12px;">
+      KhataMate guarantees 100% data ownership. Users can export their financial records at any time in open formats.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Export / Backup Feature</th>
+          <th>File Format</th>
+          <th>Implementation Code</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Export Customers CSV</strong></td>
+          <td><code>.csv</code></td>
+          <td><code>lib/export.ts#exportCustomerListCSV</code></td>
+          <td>Exports full customer roster with phones, room IDs, balances, credit limits & status.</td>
+        </tr>
+        <tr>
+          <td><strong>Export Transactions CSV</strong></td>
+          <td><code>.csv</code></td>
+          <td><code>lib/export.ts#exportTransactionsCSV</code></td>
+          <td>Exports complete itemized transaction history with timestamps, balances & notes.</td>
+        </tr>
+        <tr>
+          <td><strong>Full System JSON Backup</strong></td>
+          <td><code>.json</code></td>
+          <td><code>lib/export.ts#exportFullBackup</code></td>
+          <td>One-click download of full shop, customer, and transaction state as structured JSON.</td>
+        </tr>
+        <tr>
+          <td><strong>JSON Restore & Import</strong></td>
+          <td><code>.json</code></td>
+          <td><code>lib/restore.ts</code></td>
+          <td>Restores complete database from backup file, replacing local storage safely.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGE 6: SETTINGS, DATA MODELS & APPENDIX -->
+  <div class="page">
+    <div class="section-header">
+      <h2 class="section-title"><span class="section-icon">06</span> Settings, Data Models & Technical Appendix</h2>
+      <span class="tag tag-purple">Technical Reference</span>
+    </div>
+
+    <h3 style="font-size: 12pt; color: #0F172A; margin-bottom: 8px;">Settings & Shop Preferences <code>app/[locale]/(app)/settings</code></h3>
+    <div class="grid-2">
+      <div class="card card-accent">
+        <div class="card-title">Shop & Business Profile</div>
+        <div class="card-desc">
+          Configure shop name, contact address, phone number, and optional GST registration number for tax invoices.
+        </div>
+      </div>
+
+      <div class="card card-danger">
+        <div class="card-title">PIN & Security Control</div>
+        <div class="card-desc">
+          Enable 4-digit security PIN, update PIN, or test lockscreen unlock flow instantly.
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size: 12pt; color: #0F172A; margin-top: 16px; margin-bottom: 8px;">Database Schema Specification <code>lib/db/schema.ts</code></h3>
+    
+    <div class="card card-accent">
+      <div class="card-title">Core TypeScript Interfaces</div>
+      <pre style="font-family: 'JetBrains Mono', monospace; font-size: 8pt; background: #0F172A; color: #F8FAFC; padding: 12px; border-radius: 6px; overflow-x: auto; margin-top: 6px;">
+export interface Shop {
+  id: string; owner_id: string; name: string; address?: string; phone?: string;
+  gst_number?: string; currency: string; plan: 'FREE' | 'PRO' | 'BUSINESS';
+  settings: { language: string; dark_mode: boolean; pin_enabled: boolean; };
+}
+
+export interface Customer {
+  id: string; shop_id: string; name: string; phone?: string; room_id?: string;
+  credit_limit: number; advance_balance: number; outstanding_due: number;
+  notes?: string; tags?: string[]; is_active: boolean; created_at: string;
+}
+
+export interface Transaction {
+  id: string; customer_id: string; shop_id: string; type: TransactionType;
+  amount: number; balance_before: number; balance_after: number;
+  items?: TransactionItem[]; note?: string; transaction_at: string;
+}
+      </pre>
+    </div>
+
+    <div style="margin-top: 30px; text-align: center; border-top: 2px dashed #E2E8F0; padding-top: 16px;">
+      <div style="font-weight: 700; font-size: 11pt; color: #1E1B4B;">KhataMate / KhataFlow System Documentation</div>
+      <div style="font-size: 8.5pt; color: #64748B; margin-top: 4px;">Designed & Developed for Modern Business Credit Ledger Management.</div>
+    </div>
+  </div>
+
+</body>
+</html>

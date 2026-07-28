@@ -1,11 +1,16 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from 'firebase/auth';
-import { subscribeToAuthChanges, signOutUser, getAuthCookie, setAuthCookie } from '@/lib/firebase/auth';
+import { createClient } from '@/lib/supabase/client';
+
+export interface LocalUser {
+  uid: string;
+  email: string | null;
+  displayName?: string | null;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: LocalUser | null;
   loading: boolean;
   logout: () => Promise<void>;
 }
@@ -17,42 +22,60 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<LocalUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Quick initial check from storage/cookies
     if (typeof window !== 'undefined') {
       const savedUserStr = localStorage.getItem('khataflow_user');
-      const hasCookie = getAuthCookie();
-      if (savedUserStr && hasCookie && !user) {
+      if (savedUserStr) {
         try {
-          const parsed = JSON.parse(savedUserStr);
-          // Set temporary object until Firebase Auth finishes initializing
-          setUser(parsed as any);
+          setUser(JSON.parse(savedUserStr));
         } catch (e) {}
       }
     }
 
-    const unsubscribe = subscribeToAuthChanges((firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        setAuthCookie(firebaseUser.email || firebaseUser.uid);
-      } else {
-        // Check if there is still a valid cookie or localStorage item (e.g. demo mode)
-        const hasCookie = getAuthCookie();
-        if (!hasCookie) {
-          setUser(null);
-        }
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        const u = {
+          uid: data.user.id,
+          email: data.user.email || null,
+          displayName: data.user.user_metadata?.full_name || data.user.email?.split('@')[0],
+        };
+        setUser(u);
+        localStorage.setItem('khataflow_user', JSON.stringify(u));
+      }
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const u = {
+          uid: session.user.id,
+          email: session.user.email || null,
+          displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+        };
+        setUser(u);
+        localStorage.setItem('khataflow_user', JSON.stringify(u));
+      } else if (!localStorage.getItem('khataflow_user')) {
+        setUser(null);
       }
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   const logout = async () => {
-    await signOutUser();
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch (err) {}
+    localStorage.removeItem('khataflow_user');
+    document.cookie = 'khataflow_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
     setUser(null);
   };
 
@@ -66,3 +89,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+

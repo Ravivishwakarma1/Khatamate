@@ -40,6 +40,11 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
           </button>
         </div>
 
+        {/* Legal Disclaimer Notice */}
+        <div style={{ background: 'rgba(255, 184, 0, 0.12)', border: '1px solid var(--gold)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', marginBottom: '12px', fontSize: '0.8rem', color: 'var(--gold)', fontWeight: 600 }}>
+          ⚠️ This is a template, not legal advice - please consult a lawyer before sending.
+        </div>
+
         {/* Modal Body */}
         <div
           style={{

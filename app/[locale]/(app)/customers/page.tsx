@@ -14,7 +14,9 @@ import RecordPaymentModal from '@/components/modals/RecordPaymentModal';
 import SendReminderModal from '@/components/modals/SendReminderModal';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/Toast';
-import { Plus, ArrowUpDown, Users } from 'lucide-react';
+import { parseAndImportCustomersCSV } from '@/lib/import';
+import { calculateCollectionPriorityScore } from '@/lib/finance';
+import { Plus, ArrowUpDown, Users, Upload, Truck } from 'lucide-react';
 import styles from './customers.module.css';
 
 export default function CustomersPage() {
@@ -23,11 +25,12 @@ export default function CustomersPage() {
   const tCust = useTranslations('customers');
   const toast = useToast();
 
+  const [activeTab, setActiveTab] = useState<'customer' | 'supplier'>('customer');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<'all' | 'overdue' | 'advance' | 'inactive'>('all');
-  const [sortBy, setSortBy] = useState<'outstanding' | 'name' | 'recent'>('outstanding');
+  const [filter, setFilter] = useState<'all' | 'overdue' | 'advance' | 'regular'>('all');
+  const [sortBy, setSortBy] = useState<'outstanding' | 'priority' | 'name' | 'recent'>('outstanding');
 
   // Modal active states
   const [showAddCustomer, setShowAddCustomer] = useState(false);
@@ -50,20 +53,43 @@ export default function CustomersPage() {
     loadData();
   }, []);
 
+  const handleCsvFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const csvText = evt.target?.result as string;
+      if (csvText) {
+        const count = await parseAndImportCustomersCSV(csvText, 'shop_main', activeTab);
+        toast.success(`Imported ${count} ${activeTab} records!`);
+        const updated = await getAllLocalCustomers();
+        setCustomers(updated);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const processedCustomers = useMemo(() => {
     let result = searchCustomers(customers, searchQuery);
+
+    // Filter by tab type
+    result = result.filter((c) => (c.entity_type || 'customer') === activeTab);
 
     if (filter === 'overdue') {
       result = result.filter((c) => c.outstanding_due > 0 && c.is_active);
     } else if (filter === 'advance') {
       result = result.filter((c) => c.advance_balance > 0 && c.is_active);
-    } else if (filter === 'inactive') {
-      result = result.filter((c) => !c.is_active);
+    } else if (filter === 'regular') {
+      result = result.filter((c) => c.is_regular);
     } else {
       result = result.filter((c) => c.is_active);
     }
 
     result.sort((a, b) => {
+      if (sortBy === 'priority') {
+        return calculateCollectionPriorityScore(b) - calculateCollectionPriorityScore(a);
+      }
       if (sortBy === 'outstanding') {
         return b.outstanding_due - a.outstanding_due;
       }
@@ -79,7 +105,7 @@ export default function CustomersPage() {
     });
 
     return result;
-  }, [customers, searchQuery, filter, sortBy]);
+  }, [customers, searchQuery, filter, sortBy, activeTab]);
 
   const handleTransactionSuccess = (updatedCust: Customer) => {
     setCustomers((prev) =>
@@ -90,18 +116,54 @@ export default function CustomersPage() {
 
   return (
     <div className={`animate-fade-in ${styles.container}`}>
+      {/* 2-Tab Switcher: Customers vs Suppliers */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+        <button
+          type="button"
+          onClick={() => setActiveTab('customer')}
+          className="btn"
+          style={{
+            background: activeTab === 'customer' ? 'var(--gradient-coral)' : 'var(--bg-card)',
+            color: activeTab === 'customer' ? '#FFF' : 'var(--text-muted)',
+            fontWeight: 700,
+          }}
+        >
+          👥 Customers (Grahak)
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('supplier')}
+          className="btn"
+          style={{
+            background: activeTab === 'supplier' ? 'var(--gradient-coral)' : 'var(--bg-card)',
+            color: activeTab === 'supplier' ? '#FFF' : 'var(--text-muted)',
+            fontWeight: 700,
+          }}
+        >
+          🚚 Suppliers (Wholesalers)
+        </button>
+      </div>
+
       {/* Page Title & Add CTA */}
       <div className={styles.pageHeader}>
         <div>
-          <h1 className={styles.title}>Customer Ledger</h1>
+          <h1 className={styles.title}>
+            {activeTab === 'customer' ? 'Customer Udhar Ledger' : 'Supplier Credit Ledger'}
+          </h1>
           <p className={styles.subtitle}>
-            {customers.length} total customer accounts
+            {processedCustomers.length} registered {activeTab} accounts
           </p>
         </div>
 
-        <button onClick={() => setShowAddCustomer(true)} className="btn btn-accent">
-          <Plus size={18} /> Add New Customer
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <label className="btn btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Upload size={16} /> Import CSV
+            <input type="file" accept=".csv" onChange={handleCsvFileImport} style={{ display: 'none' }} />
+          </label>
+          <button onClick={() => setShowAddCustomer(true)} className="btn btn-accent">
+            <Plus size={18} /> Add {activeTab === 'customer' ? 'Customer' : 'Supplier'}
+          </button>
+        </div>
       </div>
 
       {/* Search & Control Bar */}
@@ -112,10 +174,10 @@ export default function CustomersPage() {
           {/* Filter Chips */}
           <div className={styles.filterChips}>
             {[
-              { id: 'all', label: 'All Active' },
-              { id: 'overdue', label: '🔴 Has Udhar Dues' },
+              { id: 'all', label: 'All Accounts' },
+              { id: 'overdue', label: activeTab === 'customer' ? '🔴 Udhar Pending' : '🔴 You Owe Dues' },
               { id: 'advance', label: '🟡 Has Advance' },
-              { id: 'inactive', label: 'Inactive' },
+              { id: 'regular', label: '⭐ Regular Customer' },
             ].map((f) => (
               <button
                 key={f.id}
@@ -136,7 +198,8 @@ export default function CustomersPage() {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
             >
-              <option value="outstanding">Highest Udhar Dues</option>
+              <option value="outstanding">Highest Balance</option>
+              <option value="priority">🚨 Highest Priority to Call</option>
               <option value="name">Name (A–Z)</option>
               <option value="recent">Most Recent Activity</option>
             </select>

@@ -2,8 +2,7 @@
 
 import React, { useState } from 'react';
 
-import { signInWithGoogle } from '@/lib/firebase/auth';
-import { formatAuthError } from '@/lib/firebase/errorHelper';
+import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/components/ui/Toast';
 import { useRouter, useParams } from 'next/navigation';
 
@@ -17,11 +16,34 @@ export default function GoogleSignInButton() {
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
-      await signInWithGoogle();
-      toast.success('Signed in with Google via Firebase!');
-      router.push(`/${locale}/dashboard`);
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const isPlaceholder = !supabaseUrl || supabaseUrl.includes('placeholder');
+
+      if (isPlaceholder) {
+        // Fallback for local development without active Supabase credentials
+        const demoUser = {
+          uid: 'demo_google_user',
+          email: 'shopkeeper@khatamate.com',
+          displayName: 'Kirana Owner (Demo)',
+        };
+        localStorage.setItem('khataflow_user', JSON.stringify(demoUser));
+        document.cookie = 'khataflow_session=true; path=/; max-age=31536000; SameSite=Lax;';
+        toast.success('Signed in as Kirana Owner (Local Offline Mode)');
+        window.location.href = `/${locale}/dashboard`;
+        return;
+      }
+
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/${locale}/dashboard`,
+        },
+      });
+      if (error) throw error;
+      toast.success('Redirecting to Google Sign-In...');
     } catch (err: any) {
-      toast.error(formatAuthError(err));
+      toast.error(err?.message || 'Google Sign-In failed');
     } finally {
       setLoading(false);
     }

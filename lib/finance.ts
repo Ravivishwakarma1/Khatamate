@@ -155,3 +155,15 @@ export async function writeOffTransaction(
 
   return { customer: updatedCustomer, transaction };
 }
+
+/**
+ * Calculates collection priority score combining days overdue and outstanding amount.
+ * PriorityScore = (DaysOverdue * 1.5) + (OutstandingAmount / 100)
+ */
+export function calculateCollectionPriorityScore(customer: Customer): number {
+  if (customer.outstanding_due <= 0) return 0;
+  const lastTxDate = customer.last_transaction_at ? new Date(customer.last_transaction_at) : new Date(customer.created_at);
+  const diffDays = Math.max(1, Math.floor((Date.now() - lastTxDate.getTime()) / (1000 * 3600 * 24)));
+  return (diffDays * 1.5) + (customer.outstanding_due / 100);
+}
+

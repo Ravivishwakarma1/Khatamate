@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { signUpWithEmail } from '@/lib/firebase/auth';
-import { formatAuthError } from '@/lib/firebase/errorHelper';
 import { useAuth } from '@/components/auth/AuthProvider';
 
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
@@ -35,8 +33,6 @@ export default function RegisterPage() {
   }, [user, router, locale]);
 
   const handleRegister = async (e: React.FormEvent) => {
-
-
     e.preventDefault();
     setErrorMsg('');
 
@@ -52,14 +48,22 @@ export default function RegisterPage() {
 
     try {
       setLoading(true);
-      await signUpWithEmail(email, password, fullName);
-      toast.success('Account created with Firebase!');
-      router.push(`/${locale}/onboarding`);
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } },
+      });
+
+      const localUser = { uid: data?.user?.id || `usr_${Date.now()}`, email, displayName: fullName };
+      localStorage.setItem('khataflow_user', JSON.stringify(localUser));
+      document.cookie = 'khataflow_session=true; path=/; max-age=31536000; SameSite=Lax;';
+
+      toast.success('Account created successfully!');
+      window.location.href = `/${locale}/dashboard`;
     } catch (err: any) {
-      setErrorMsg(formatAuthError(err));
+      setErrorMsg(err?.message || 'Registration failed');
     } finally {
-
-
       setLoading(false);
     }
   };

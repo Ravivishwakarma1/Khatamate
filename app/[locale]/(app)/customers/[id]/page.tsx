@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { Customer, Transaction } from '@/lib/db/schema';
 import { getLocalCustomerById, getLocalTransactionsByCustomer } from '@/lib/db/idb';
-import { getCustomerFromFirestore, getTransactionsFromFirestore } from '@/lib/firebase/firestoreSync';
 import { useShopStore } from '@/lib/shopStore';
 import AddCreditModal from '@/components/modals/AddCreditModal';
 import RecordPaymentModal from '@/components/modals/RecordPaymentModal';
@@ -97,15 +96,9 @@ export default function CustomerProfilePage() {
     async function loadProfile() {
       try {
         let cust: Customer | null | undefined = await getLocalCustomerById(customerId);
-        if (!cust) {
-          cust = await getCustomerFromFirestore(customerId);
-        }
         if (cust) {
           setCustomer(cust);
           let txs = await getLocalTransactionsByCustomer(customerId);
-          if (!txs || txs.length === 0) {
-            txs = await getTransactionsFromFirestore(customerId);
-          }
 
           if (!txs || txs.length === 0) {
             const fallbackList: Transaction[] = [];

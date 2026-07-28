@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import styles from '../dashboard.module.css';
 
+import VoiceTutorialModal from '@/components/ui/VoiceTutorialModal';
+
 export default function DashboardPage() {
   const params = useParams();
   const locale = (params?.locale as string) || 'en';
@@ -37,6 +39,7 @@ export default function DashboardPage() {
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // Quick Action Modal States
   const [selectMode, setSelectMode] = useState<'credit' | 'payment' | null>(null);
@@ -49,11 +52,15 @@ export default function DashboardPage() {
     async function loadData() {
       try {
         const list = await getAllLocalCustomers();
-        // Filter by active shop or include legacy customers
         const filtered = list.filter(
           (c) => !c.shop_id || c.shop_id === activeShop?.id || c.shop_id === 'shop_demo' || c.shop_id === 'shop_main'
         );
         setCustomers(filtered);
+
+        // First-open tutorial check
+        if (typeof window !== 'undefined' && !localStorage.getItem('khataflow_tutorial_seen')) {
+          setShowTutorial(true);
+        }
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
         toast.error('Failed to load local database records');
@@ -66,18 +73,20 @@ export default function DashboardPage() {
 
   const shopName = activeShop?.name || 'My Shop';
 
-  // Time-based greeting helper
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  };
+  // 3-Number Display Calculations (Aaj: X liya, Y diya, Z bacha)
+  const todayCustList = customers.filter((c) => (c.entity_type || 'customer') === 'customer');
+  const todaySuppList = customers.filter((c) => c.entity_type === 'supplier');
 
-  // Financial Metrics Calculation
-  const totalOutstanding = customers.reduce((sum, c) => sum + (c.outstanding_due || 0), 0);
-  const activeCount = customers.filter((c) => c.is_active).length;
-  const overdueCount = customers.filter((c) => c.outstanding_due > 0).length;
+  const totalCollectedToday = todayCustList.reduce((sum, c) => sum + (c.advance_balance || 0), 0);
+  const totalGivenToday = todayCustList.reduce((sum, c) => sum + (c.outstanding_due || 0), 0);
+  const netBalanceLeft = totalCollectedToday - totalGivenToday;
+
+  const supplierDebtTotal = todaySuppList.reduce((sum, s) => sum + (s.outstanding_due || 0), 0);
+
+  // Overdue Reminders Surfaced Automatically
+  const overdueReminders = todayCustList.filter(
+    (c) => c.outstanding_due > 0 && (c.promise_date ? new Date(c.promise_date) <= new Date() : true)
+  );
 
   const filteredCustomers = customers.filter(
     (c) =>
@@ -113,69 +122,111 @@ export default function DashboardPage() {
       <div className={styles.welcomeBanner}>
         <div className={styles.welcomeText}>
           <h1 className={styles.greeting}>
-            {getGreeting()}, {shopName}! <Sparkles size={20} className="text-accent" />
+            KhataMate Home • {shopName} <Sparkles size={20} className="text-accent" />
           </h1>
           <p className={styles.subtext}>
-            {tDash('summarySubtext')}
+            Simple Kirana Ledger Companion
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => setShowTutorial(true)} className="btn btn-ghost" style={{ fontSize: '0.8rem' }}>
+            🔊 Voice Guide
+          </button>
           <button onClick={() => setShowAddCustomer(true)} className="btn btn-secondary">
-            <UserPlus size={16} /> Add Customer
+            <UserPlus size={16} /> Add Account
           </button>
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className={styles.kpiGrid}>
-        {/* Total Receivables */}
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiHeader}>
-            <span className={styles.kpiTitle}>TOTAL RECEIVABLES</span>
-            <div className={styles.kpiIconBox} style={{ background: 'rgba(244, 63, 94, 0.15)', color: 'var(--coral)' }}>
-              <ArrowUpRight size={18} />
+      {/* 3-NUMBER DISPLAY (Aaj: X liya, Y diya, Z bacha) */}
+      <div
+        style={{
+          background: 'var(--gradient-card)',
+          border: '1px solid var(--accent)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '24px',
+          marginBottom: '20px',
+          boxShadow: '0 8px 32px rgba(108, 58, 232, 0.25)',
+        }}
+      >
+        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+          📊 Aaj Ka Daily Ledger Display:
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: '16px',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ background: 'rgba(0, 201, 167, 0.15)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--accent)' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent)' }}>Aaj Liya (Received)</div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent)', marginTop: '4px' }}>
+              ₹ {totalCollectedToday.toFixed(0)}
             </div>
           </div>
-          <div className={`${styles.kpiValue} text-coral`}>
-            ₹ {totalOutstanding.toFixed(2)}
+
+          <div style={{ background: 'rgba(244, 63, 94, 0.15)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--coral)' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--coral)' }}>Aaj Diya (Udhar)</div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--coral)', marginTop: '4px' }}>
+              ₹ {totalGivenToday.toFixed(0)}
+            </div>
           </div>
-          <p className={styles.kpiSub}>
-            Total outstanding credit (Udhar) across {overdueCount} accounts
-          </p>
+
+          <div style={{ background: 'rgba(255, 184, 0, 0.15)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--gold)' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--gold)' }}>Net Customer Balance</div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--gold)', marginTop: '4px' }}>
+              ₹ {Math.abs(netBalanceLeft).toFixed(0)}
+            </div>
+          </div>
         </div>
 
-        {/* Active Accounts */}
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiHeader}>
-            <span className={styles.kpiTitle}>ACTIVE CUSTOMERS</span>
-            <div className={styles.kpiIconBox} style={{ background: 'rgba(0, 201, 167, 0.15)', color: 'var(--accent)' }}>
-              <Users size={18} />
-            </div>
+        {/* Supplier Total Debt Badge */}
+        {supplierDebtTotal > 0 && (
+          <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px border var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+            <span style={{ color: 'var(--text-muted)' }}>🚚 You Owe Suppliers (Distributors):</span>
+            <span style={{ fontWeight: 800, color: 'var(--coral)', fontSize: '1.1rem' }}>₹ {supplierDebtTotal.toFixed(2)}</span>
           </div>
-          <div className={styles.kpiValue}>
-            {activeCount}
-          </div>
-          <p className={styles.kpiSub}>
-            Registered customer accounts in local database
-          </p>
-        </div>
-
-        {/* Overdue Accounts Warning */}
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiHeader}>
-            <span className={styles.kpiTitle}>OVERDUE DUES</span>
-            <div className={styles.kpiIconBox} style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--gold)' }}>
-              <AlertTriangle size={18} />
-            </div>
-          </div>
-          <div className={`${styles.kpiValue} text-gold`}>
-            {overdueCount}
-          </div>
-          <p className={styles.kpiSub}>
-            Customers with pending balances requiring reminder
-          </p>
-        </div>
+        )}
       </div>
+
+      {/* Auto-surfaced Overdue Reminders Banner */}
+      {overdueReminders.length > 0 && (
+        <div
+          style={{
+            background: 'rgba(245, 158, 11, 0.12)',
+            border: '1px solid var(--gold)',
+            borderRadius: 'var(--radius-md)',
+            padding: '14px 18px',
+            marginBottom: '20px',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div style={{ fontWeight: 800, color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <AlertTriangle size={18} /> {overdueReminders.length} Payment Reminders Due Today
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+            {overdueReminders.slice(0, 3).map((rem) => (
+              <a
+                key={rem.id}
+                href={`https://wa.me/${rem.phone?.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                  `Namaste ${rem.name} ji, KhataMate app se aapka total pending udhar ₹${rem.outstanding_due.toFixed(
+                    2
+                  )} hai. Kripya payment karein.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-secondary"
+                style={{ fontSize: '0.78rem', padding: '4px 10px', background: 'rgba(0,201,167,0.2)', color: 'var(--emerald)' }}
+              >
+                📲 WhatsApp {rem.name} (₹{rem.outstanding_due.toFixed(0)})
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quick Action Hub */}
       <div className={styles.quickActionCard}>
@@ -318,6 +369,10 @@ export default function DashboardPage() {
           onClose={() => setShowAddCustomer(false)}
           onCustomerAdded={(newCust) => setCustomers((prev) => [newCust, ...prev])}
         />
+      )}
+
+      {showTutorial && (
+        <VoiceTutorialModal onClose={() => setShowTutorial(false)} />
       )}
     </div>
   );

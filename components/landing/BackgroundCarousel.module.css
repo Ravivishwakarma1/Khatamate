@@ -1,0 +1,133 @@
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Gradient Mask overlay to ensure perfect text readability on top */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at 50% 30%, rgba(15, 10, 30, 0.65) 0%, rgba(15, 10, 30, 0.94) 75%),
+    linear-gradient(to bottom, rgba(15, 10, 30, 0.4) 0%, rgba(15, 10, 30, 0.85) 60%, rgba(15, 10, 30, 0.98) 100%);
+  z-index: 2;
+  backdrop-filter: blur(2px);
+}
+
+/* Side edge fade masks */
+.fadeEdges {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(15, 10, 30, 0.95) 0%, transparent 15%, transparent 85%, rgba(15, 10, 30, 0.95) 100%);
+  z-index: 3;
+}
+
+.carouselWrapper {
+  position: absolute;
+  top: -40px;
+  left: -5%;
+  width: 110%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transform: rotate(-2deg) scale(1.05);
+  transform-origin: top center;
+  opacity: 0.5;
+  z-index: 1;
+  transition: opacity 0.5s ease;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  user-select: none;
+}
+
+.trackLeft {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+  animation: marqueeLeft 42s linear infinite;
+  will-change: transform;
+}
+
+.trackRight {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+  animation: marqueeRight 48s linear infinite;
+  will-change: transform;
+}
+
+.trackLeftSlow {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+  animation: marqueeLeft 55s linear infinite;
+  will-change: transform;
+}
+
+.card {
+  width: 280px;
+  height: 175px;
+  border-radius: 18px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: #1c162e;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.9) contrast(1.05);
+  transition: transform 0.4s ease;
+}
+
+.cardOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+@keyframes marqueeLeft {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marqueeRight {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    width: 200px;
+    height: 130px;
+    border-radius: 14px;
+  }
+  
+  .carouselWrapper {
+    gap: 14px;
+    transform: rotate(-1deg) scale(1.02);
+  }
+}

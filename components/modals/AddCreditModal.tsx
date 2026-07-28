@@ -6,6 +6,8 @@ import { addCreditTransaction } from '@/lib/finance';
 import { useToast } from '@/components/ui/Toast';
 import { X, Trash2, Plus, AlertCircle } from 'lucide-react';
 import styles from './modal.module.css';
+import BigKeypad from '@/components/ui/BigKeypad';
+import VoiceInputButton from '@/components/ui/VoiceInputButton';
 
 interface AddCreditModalProps {
   customer: Customer;
@@ -18,8 +20,15 @@ export default function AddCreditModal({ customer, onClose, onSuccess }: AddCred
   const [tab, setTab] = useState<'quick' | 'item'>('quick');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
+  const [showKeypad, setShowKeypad] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const handleVoiceParsed = (entry: any) => {
+    if (entry.amount) setAmount(entry.amount.toString());
+    if (entry.rawText) setNote(entry.rawText);
+    toast.success('Voice entry parsed!');
+  };
 
   const [items, setItems] = useState<TransactionItem[]>([
     { name: '', qty: 1, price: 0, subtotal: 0 },
@@ -135,6 +144,19 @@ export default function AddCreditModal({ customer, onClose, onSuccess }: AddCred
 
         {errorMsg && <div className={styles.errorBanner}>{errorMsg}</div>}
 
+        {/* Voice Input & Helper bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <VoiceInputButton onParsed={handleVoiceParsed} />
+          <button
+            type="button"
+            onClick={() => setShowKeypad(!showKeypad)}
+            className="btn btn-secondary"
+            style={{ fontSize: '0.8rem' }}
+          >
+            {showKeypad ? '⌨️ Use Keyboard' : '🔢 Calculator Keypad'}
+          </button>
+        </div>
+
         {/* Tab Switcher */}
         <div style={{ display: 'flex', background: 'var(--bg-input)', padding: '4px', borderRadius: 'var(--radius-md)', marginBottom: '20px' }}>
           <button
@@ -213,6 +235,10 @@ export default function AddCreditModal({ customer, onClose, onSuccess }: AddCred
                 />
               </div>
 
+              {showKeypad && (
+                <BigKeypad value={amount} onChange={(val) => setAmount(val)} />
+              )}
+
               <div className="input-group">
                 <label className="input-label">Note / Description (Optional)</label>
                 <input
@@ -222,6 +248,10 @@ export default function AddCreditModal({ customer, onClose, onSuccess }: AddCred
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                 />
+              </div>
+
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '-8px', marginBottom: '12px' }}>
+                ℹ️ Note: High interest rates on informal credit may have legal restrictions in India.
               </div>
             </div>
           ) : (

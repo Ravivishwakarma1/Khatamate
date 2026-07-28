@@ -64,6 +64,11 @@ export default function CustomerCard({
         <div>
           <div className={styles.nameRow}>
             <h3 className={styles.name}>{customer.name}</h3>
+            {customer.is_regular && (
+              <span className="badge" style={{ background: 'rgba(108, 58, 232, 0.2)', color: 'var(--accent)', fontSize: '0.65rem' }}>
+                ⭐ Regular
+              </span>
+            )}
             {customer.room_id && (
               <span className={styles.roomBadge}>
                 <Home size={10} />

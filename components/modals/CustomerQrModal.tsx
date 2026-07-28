@@ -21,6 +21,7 @@ export default function CustomerQrModal({
 }: CustomerQrModalProps) {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://khatamate.vercel.app';
   const queryParams = new URLSearchParams();
+  // Keep QR payload concise & lightweight so QR matrix remains large, bold, and easily scannable
   if (customer.name) queryParams.set('name', customer.name);
   if (customer.outstanding_due !== undefined) queryParams.set('due', customer.outstanding_due.toString());
   if (customer.advance_balance !== undefined) queryParams.set('adv', customer.advance_balance.toString());
@@ -28,38 +29,27 @@ export default function CustomerQrModal({
   if (customer.room_id) queryParams.set('room', customer.room_id);
   if (shopName) queryParams.set('shop', shopName);
 
+  // Encode only top 3 micro transactions to keep payload lightweight
   if (transactions && transactions.length > 0) {
     try {
-      const compactTxs = transactions.slice(0, 30).map((t) => ({
-        id: t.id,
-        type: t.type,
-        amount: t.amount,
-        note: t.note || '',
-        transaction_at: t.transaction_at,
-        balance_after: t.balance_after,
-        balance_before: t.balance_before,
-        items: t.items || [],
-        is_disputed: t.is_disputed || false,
+      const compactTxs = transactions.slice(0, 3).map((t) => ({
+        t: t.type === 'CREDIT' ? 'C' : 'P',
+        a: t.amount,
+        d: t.transaction_at.substring(0, 10),
       }));
-      const jsonStr = JSON.stringify(compactTxs);
-      const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
-      queryParams.set('txs', encoded);
-    } catch (e) {
-      console.warn('Failed to encode transactions into QR:', e);
-    }
+      queryParams.set('txs', btoa(JSON.stringify(compactTxs)));
+    } catch (e) {}
   }
 
   const qrValue = `${origin}/en/passbook/${customer.id}?${queryParams.toString()}`;
-
 
   const handlePrint = () => {
     window.print();
   };
 
-
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.content} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px', textAlign: 'center' }}>
+      <div className={styles.content} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px', textAlign: 'center' }}>
         <div className={styles.dragHandle} />
         {/* Header */}
         <div className={styles.header}>
@@ -78,7 +68,7 @@ export default function CustomerQrModal({
             background: 'linear-gradient(135deg, #241642 0%, #1A1030 100%)',
             border: '2px solid var(--primary-light)',
             borderRadius: 'var(--radius-lg)',
-            padding: '24px',
+            padding: '24px 16px',
             marginBottom: '20px',
             boxShadow: 'var(--shadow-lg)',
           }}
@@ -95,10 +85,10 @@ export default function CustomerQrModal({
               borderRadius: 'var(--radius-md)',
               display: 'inline-block',
               marginBottom: '16px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
             }}
           >
-            <QRCodeSVG value={qrValue} size={160} level="H" includeMargin />
+            <QRCodeSVG value={qrValue} size={250} level="M" includeMargin />
           </div>
 
           <h4 style={{ fontSize: 'var(--text-xl)', fontWeight: 800, marginBottom: '4px' }}>{customer.name}</h4>
@@ -106,8 +96,8 @@ export default function CustomerQrModal({
             {customer.phone || customer.room_id || 'Digital Customer Pass'}
           </p>
 
-          <div style={{ marginTop: '14px', fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Scan to view account ledger
+          <div style={{ marginTop: '14px', fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            📷 SCAN WITH ANY PHONE CAMERA TO VIEW LEDGER
           </div>
         </div>
 

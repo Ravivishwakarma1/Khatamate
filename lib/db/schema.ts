@@ -33,6 +33,9 @@ export interface Customer {
   tags?: string[];
   family_id?: string;
   is_active: boolean;
+  entity_type?: 'customer' | 'supplier';
+  is_regular?: boolean;
+  promise_date?: string;
   created_at: string;
   updated_at: string;
   last_transaction_at?: string;

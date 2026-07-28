@@ -18,6 +18,7 @@ import {
   Quote
 } from 'lucide-react';
 import { LandingNavbar } from '@/components/landing/LandingNavbar';
+import { BackgroundCarousel } from '@/components/landing/BackgroundCarousel';
 import LegalModal, { LegalDocType } from '@/components/modals/LegalModal';
 import styles from './landing/landing.module.css';
 
@@ -28,6 +29,9 @@ export default function LandingPage() {
 
   return (
     <div className={styles.page}>
+      {/* Background Multi-Row Carousel (SS 1 Style) */}
+      <BackgroundCarousel />
+
       {/* Background Orbs */}
       <div className={styles.orbPrimary} />
       <div className={styles.orbAccent} />
