@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { isPinEnabled, setSecurityPin, disableSecurityPin } from '@/lib/pin';
 import { importFullBackup } from '@/lib/restore';
@@ -21,7 +21,9 @@ import {
   Download,
   CheckCircle2,
   KeyRound,
-  Trash2
+  Trash2,
+  ShieldCheck,
+  X
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import styles from './settings.module.css';
@@ -29,6 +31,7 @@ import styles from './settings.module.css';
 export default function SettingsPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const currentLocale = (params?.locale as string) || 'en';
   const tSet = useTranslations('settings');
   const toast = useToast();
@@ -37,6 +40,12 @@ export default function SettingsPage() {
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [gstNumber, setGstNumber] = useState('');
+
+  // Password Reset modal states
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [newAccountPassword, setNewAccountPassword] = useState('');
+  const [confirmAccountPassword, setConfirmAccountPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
 
   // PIN security states
   const [pinActive, setPinActive] = useState(false);
@@ -59,7 +68,39 @@ export default function SettingsPage() {
         if (parsed.gst_number) setGstNumber(parsed.gst_number);
       } catch (e) {}
     }
-  }, []);
+
+    if (searchParams?.get('reset_password') === 'true') {
+      setShowResetPasswordModal(true);
+    }
+  }, [searchParams]);
+
+  const handleUpdateAccountPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newAccountPassword !== confirmAccountPassword) {
+      toast.error('Passwords do not match.');
+      return;
+    }
+    if (newAccountPassword.length < 6) {
+      toast.error('Password must be at least 6 characters.');
+      return;
+    }
+
+    try {
+      setResetLoading(true);
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ password: newAccountPassword });
+      if (error) throw error;
+      toast.success('Password updated successfully!');
+      setShowResetPasswordModal(false);
+      setNewAccountPassword('');
+      setConfirmAccountPassword('');
+      router.replace(`/${currentLocale}/settings`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to update password.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   const handleSaveProfile = () => {
     const shopData = { name: shopName, address, phone, gst_number: gstNumber };
@@ -350,6 +391,77 @@ export default function SettingsPage() {
       {/* Test PIN Lock Screen */}
       {showTestPinLock && (
         <PinLockOverlay onUnlock={() => setShowTestPinLock(false)} />
+      )}
+
+      {/* Set New Account Password Modal */}
+      {showResetPasswordModal && (
+        <div className="modal-overlay" onClick={() => setShowResetPasswordModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <KeyRound size={22} color="var(--accent)" />
+                <h2 style={{ fontSize: 'var(--text-lg)', margin: 0 }}>Set New Password</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowResetPasswordModal(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)', lineHeight: '1.5', marginBottom: '16px' }}>
+              Type your new account password below to update your login credentials.
+            </p>
+
+            <form onSubmit={handleUpdateAccountPassword}>
+              <div className="input-group">
+                <label className="input-label">New Password</label>
+                <input
+                  type="password"
+                  required
+                  autoFocus
+                  className="input-field"
+                  placeholder="••••••••"
+                  value={newAccountPassword}
+                  onChange={(e) => setNewAccountPassword(e.target.value)}
+                />
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">Confirm New Password</label>
+                <input
+                  type="password"
+                  required
+                  className="input-field"
+                  placeholder="••••••••"
+                  value={confirmAccountPassword}
+                  onChange={(e) => setConfirmAccountPassword(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowResetPasswordModal(false)}
+                  className="btn btn-secondary"
+                  style={{ flex: 1 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="btn btn-accent"
+                  style={{ flex: 2 }}
+                >
+                  {resetLoading ? 'Updating...' : 'Update Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

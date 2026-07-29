@@ -260,7 +260,7 @@ export default function LoginPage() {
       }
 
       const supabase = createClient();
-      const redirectTo = `${window.location.origin}/api/auth/callback?next=/${locale}/settings`;
+      const redirectTo = `${window.location.origin}/api/auth/callback?next=/${locale}/settings?reset_password=true`;
       const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, { redirectTo });
 
       if (error) {
